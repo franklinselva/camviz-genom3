@@ -55,6 +55,7 @@ component camviz {
         } size;
 
         boolean disp;
+        boolean fov;
     };
 
     /* ---- Display task -------------------------------------------------- */
@@ -67,11 +68,13 @@ component camviz {
         codel<wait> viz_wait(in disp, in frame)
             yield pause::wait, disp;
 
-        codel<disp> viz_display(in size, in frame)
+        codel<disp> viz_display(in size, in fov, in frame)
             yield pause::wait;
     };
 
-    /* ---- On/Off -------------------------------------------------------- */
+    /* ---- Services ------------------------------------------------------ */
+    attribute disp_fov(in fov);
+
     function start() {
         codel display_start(in size, out disp);
     };

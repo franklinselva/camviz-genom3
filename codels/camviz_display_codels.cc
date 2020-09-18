@@ -42,8 +42,8 @@ genom_event
 viz_start(camviz_ids *ids, const genom_context self)
 {
     ids->disp = false;
+    ids->fov = false;
     ids->size = {480, 270};
-
     return camviz_wait;
 }
 
@@ -70,8 +70,8 @@ viz_wait(bool disp, const camviz_frame *frame,
  * Yields to camviz_pause_wait.
  */
 genom_event
-viz_display(const camviz_ids_img_size *size, const camviz_frame *frame,
-            const genom_context self)
+viz_display(const camviz_ids_img_size *size, bool fov,
+            const camviz_frame *frame, const genom_context self)
 {
     frame->read(self);
     or_sensor_frame* fdata = frame->data(self);
@@ -84,8 +84,8 @@ viz_display(const camviz_ids_img_size *size, const camviz_frame *frame,
     );
 
     cvtColor(cvframe, cvframe, COLOR_RGB2BGR);
-
-    circle(cvframe, Point(fdata->width/2,fdata->height/2), fdata->height/2, Scalar(0,0,255), 2);
+    if (fov)
+        circle(cvframe, Point(fdata->width/2,fdata->height/2), fdata->height/2, Scalar(0,0,255), 2);
 
     imshow("camviz-genom3", cvframe);
     waitKey(1);

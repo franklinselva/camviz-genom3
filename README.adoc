@@ -118,6 +118,19 @@ a|.Data structure
 
 == Services
 
+[[disp_fov]]
+=== disp_fov (attribute)
+
+[role="small", width="50%", float="right", cols="1"]
+|===
+a|.Inputs
+[disc]
+ * `boolean` `fov`
+
+|===
+
+'''
+
 [[start]]
 === start (function)
 
