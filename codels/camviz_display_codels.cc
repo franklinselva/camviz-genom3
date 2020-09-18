@@ -57,7 +57,8 @@ genom_event
 viz_wait(bool disp, const camviz_frame *frame,
          const genom_context self)
 {
-    if (disp && frame->read(self) == genom_ok && frame->data(self))
+    if (disp && frame->read(self) == genom_ok
+        && frame->data(self) && frame->data(self)->pixels._length > 0)
         return camviz_disp;
     else
         return camviz_pause_wait;
