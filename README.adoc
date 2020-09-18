@@ -1,0 +1,146 @@
+//
+// Copyright (c) 2020 LAAS/CNRS
+// All rights reserved.
+//
+// Redistribution  and  use  in  source  and binary  forms,  with  or  without
+// modification, are permitted provided that the following conditions are met:
+//
+//   1. Redistributions of  source  code must retain the  above copyright
+//      notice and this list of conditions.
+//   2. Redistributions in binary form must reproduce the above copyright
+//      notice and  this list of  conditions in the  documentation and/or
+//      other materials provided with the distribution.
+//
+// THE SOFTWARE  IS PROVIDED "AS IS"  AND THE AUTHOR  DISCLAIMS ALL WARRANTIES
+// WITH  REGARD   TO  THIS  SOFTWARE  INCLUDING  ALL   IMPLIED  WARRANTIES  OF
+// MERCHANTABILITY AND  FITNESS.  IN NO EVENT  SHALL THE AUTHOR  BE LIABLE FOR
+// ANY  SPECIAL, DIRECT,  INDIRECT, OR  CONSEQUENTIAL DAMAGES  OR  ANY DAMAGES
+// WHATSOEVER  RESULTING FROM  LOSS OF  USE, DATA  OR PROFITS,  WHETHER  IN AN
+// ACTION OF CONTRACT, NEGLIGENCE OR  OTHER TORTIOUS ACTION, ARISING OUT OF OR
+// IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+//
+//                                             Martin Jacquet - September 2020
+//
+
+
+// This file was generated from camviz.gen by the skeleton
+// template. Manual changes should be preserved, although they should
+// rather be added to the "doc" attributes of the genom objects defined in
+// camviz.gen.
+
+= camviz component
+martin.jacquet@laas.fr
+1.0
+:toc: left
+
+// fix default asciidoctor stylesheet issue #2407 and add hr clear rule
+ifdef::backend-html5[]
+[pass]
+++++
+<link rel="stylesheet" href="data:text/css,p{font-size: inherit !important}" >
+<link rel="stylesheet" href="data:text/css,hr{clear: both}" >
+++++
+endif::[]
+
+
+
+== Ports
+
+
+[[frame]]
+=== frame (in)
+
+
+[role="small", width="50%", float="right", cols="1"]
+|===
+a|.Data structure
+[disc]
+ * `struct ::or::sensor::frame` `frame`
+ ** `struct ::or::time::ts` `ts`
+ *** `long` `sec`
+ *** `long` `nsec`
+ ** `unsigned short` `height`
+ ** `unsigned short` `width`
+ ** `unsigned short` `bpp`
+ ** `sequence< octet >` `pixels`
+
+|===
+
+'''
+
+[[intrinsics]]
+=== intrinsics (in)
+
+
+[role="small", width="50%", float="right", cols="1"]
+|===
+a|.Data structure
+[disc]
+ * `struct ::or::sensor::intrinsics` `intrinsics`
+ ** `struct ::or::sensor::calibration` `calib`
+ *** `float` `fx`
+ *** `float` `fy`
+ *** `float` `cx`
+ *** `float` `cy`
+ *** `float` `gammma`
+ ** `struct ::or::sensor::distortion` `disto`
+ *** `float` `k1`
+ *** `float` `k2`
+ *** `float` `k3`
+ *** `float` `p1`
+ *** `float` `p2`
+
+|===
+
+'''
+
+[[extrinsics]]
+=== extrinsics (in)
+
+
+[role="small", width="50%", float="right", cols="1"]
+|===
+a|.Data structure
+[disc]
+ * `struct ::or::sensor::extrinsics` `extrinsics`
+ ** `struct ::or::sensor::rotation` `rot`
+ *** `float` `roll`
+ *** `float` `pitch`
+ *** `float` `yaw`
+ ** `struct ::or::sensor::translation` `trans`
+ *** `float` `tx`
+ *** `float` `ty`
+ *** `float` `tz`
+
+|===
+
+'''
+
+== Services
+
+[[start]]
+=== start (function)
+
+
+'''
+
+[[stop]]
+=== stop (function)
+
+
+'''
+
+== Tasks
+
+[[display]]
+=== display
+
+[role="small", width="50%", float="right", cols="1"]
+|===
+a|.Context
+[disc]
+  * Frequency 58.8235294117647 _Hz_
+* Reads port `<<frame>>`
+|===
+
+'''

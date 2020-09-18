@@ -1,0 +1,82 @@
+/*/
+ * Copyright (c) 2020 LAAS/CNRS
+ * All rights reserved.
+ *
+ * Redistribution  and  use  in  source  and binary  forms,  with  or  without
+ * modification, are permitted provided that the following conditions are met:
+ *
+ *   1. Redistributions of  source  code must retain the  above copyright
+ *      notice and this list of conditions.
+ *   2. Redistributions in binary form must reproduce the above copyright
+ *      notice and  this list of  conditions in the  documentation and/or
+ *      other materials provided with the distribution.
+ *
+ * THE SOFTWARE  IS PROVIDED "AS IS"  AND THE AUTHOR  DISCLAIMS ALL WARRANTIES
+ * WITH  REGARD   TO  THIS  SOFTWARE  INCLUDING  ALL   IMPLIED  WARRANTIES  OF
+ * MERCHANTABILITY AND  FITNESS.  IN NO EVENT  SHALL THE AUTHOR  BE LIABLE FOR
+ * ANY  SPECIAL, DIRECT,  INDIRECT, OR  CONSEQUENTIAL DAMAGES  OR  ANY DAMAGES
+ * WHATSOEVER  RESULTING FROM  LOSS OF  USE, DATA  OR PROFITS,  WHETHER  IN AN
+ * ACTION OF CONTRACT, NEGLIGENCE OR  OTHER TORTIOUS ACTION, ARISING OUT OF OR
+ * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+ *
+ *                                             Martin Jacquet - September 2020
+ */
+/* ---- Includes ---------------------------------------------------------- */
+#pragma require "openrobots2-idl >= 2.0"
+#pragma require "vision-idl"
+
+#include "or/sensor/camera.gen"
+
+/* ---- Component declaration --------------------------------------------- */
+component camviz {
+    version         "1.0";
+    email           "martin.jacquet@laas.fr";
+    lang			"c";
+    require         "genom3 >= 2.99.26";
+    codels-require  "opencv";
+
+    /* ---- Interfaces ---------------------------------------------------- */
+    uses or_camera;
+
+    /* ---- Exceptions ---------------------------------------------------- */
+
+    /* ---- Ports --------------------------------------------------------- */
+    /* interfaces ports:
+     *  port in   or::sensor::frame         frame;
+     *  port in   or::sensor::intrinsics    intrinsics; // unused
+     *  port in   or::sensor::extrinsics    extrinsics; // unused
+     */
+
+    /* ---- IDS ----------------------------------------------------------- */
+    ids {
+        struct img_size {
+            unsigned short w;
+            unsigned short h;
+        } size;
+
+        boolean disp;
+    };
+
+    /* ---- Display task -------------------------------------------------- */
+    task display {
+        period 17 ms;
+
+        codel<start> viz_start(out ::ids)
+            yield wait;
+
+        codel<wait> viz_wait(in disp, in frame)
+            yield pause::wait, disp;
+
+        codel<disp> viz_display(in size, in frame)
+            yield pause::wait;
+    };
+
+    /* ---- On/Off -------------------------------------------------------- */
+    function start() {
+        codel display_start(in size, out disp);
+    };
+
+    function stop() {
+        codel display_stop(out disp);
+    };
+};

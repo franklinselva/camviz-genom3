@@ -1,0 +1,17 @@
+
+# pkg-config file for camviz interface and codels library
+#
+prefix=@prefix@
+exec_prefix=@exec_prefix@
+libdir=@libdir@
+includedir=@includedir@
+datarootdir=@datarootdir@
+idldir=@datadir@/idl
+
+Name: camviz-genom3
+Description: camviz interface and codels library
+Version: @PACKAGE_VERSION@
+Requires: openrobots2-idl >= 2.0, vision-idl, genom3 >= 2.99.26
+Cflags: -I${includedir} -I${idldir}
+Libs: -L${libdir} -lcamviz_codels
+Libs.private: @codels_requires_LIBS@

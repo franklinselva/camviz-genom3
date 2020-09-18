@@ -1,0 +1,13 @@
+
+# pkg-config file for uninstalled camviz interface and codels library
+#
+prefix=@abs_top_builddir@
+libdir=${prefix}/codels
+includedir=${prefix}/codels
+
+Name: camviz-genom3
+Description: camviz interface and codels library
+Version: @PACKAGE_VERSION@
+Requires: openrobots2-idl >= 2.0, vision-idl, genom3 >= 2.99.26
+Libs: ${libdir}/libcamviz_codels.la
+Libs.private: @codels_requires_LIBS@
