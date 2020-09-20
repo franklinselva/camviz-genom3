@@ -21,7 +21,6 @@
  *
  *                                             Martin Jacquet - September 2020
  */
-
 #include "accamviz.h"
 
 #include "camviz_c_types.h"
@@ -77,14 +76,22 @@ viz_display(const camviz_ids_img_size *size, bool fov,
     frame->read(self);
     or_sensor_frame* fdata = frame->data(self);
 
+    int type;
+    if (fdata->bpp == 1)
+        type = CV_8UC1;
+    else
+        type = CV_8UC3;
+
     Mat cvframe = Mat(
         Size(fdata->width, fdata->height),
-        CV_8UC3,
+        type,
         (void*)fdata->pixels._buffer,
         Mat::AUTO_STEP
     );
 
-    cvtColor(cvframe, cvframe, COLOR_RGB2BGR);
+    if (fdata->bpp == 3)
+        cvtColor(cvframe, cvframe, COLOR_RGB2BGR);
+
     if (fov)
         circle(cvframe, Point(fdata->width/2,fdata->height/2), fdata->height/2, Scalar(0,0,255), 2);
 

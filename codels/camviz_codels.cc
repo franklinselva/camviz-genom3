@@ -21,7 +21,6 @@
  *
  *                                             Martin Jacquet - September 2020
  */
-
 #include "accamviz.h"
 
 #include "camviz_c_types.h"
@@ -29,7 +28,6 @@
 #include <opencv2/opencv.hpp>
 
 using namespace cv;
-
 
 /* --- Function start --------------------------------------------------- */
 
