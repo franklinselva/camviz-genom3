@@ -76,15 +76,9 @@ viz_display(const camviz_ids_img_size *size, bool fov,
     frame->read(self);
     or_sensor_frame* fdata = frame->data(self);
 
-    int type;
-    if (fdata->bpp == 1)
-        type = CV_8UC1;
-    else
-        type = CV_8UC3;
-
     Mat cvframe = Mat(
         Size(fdata->width, fdata->height),
-        type,
+        (fdata->bpp == 1) ? CV_8UC1 : CV_8UC3,
         (void*)fdata->pixels._buffer,
         Mat::AUTO_STEP
     );
