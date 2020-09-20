@@ -89,7 +89,9 @@ viz_display(const camviz_ids_img_size *size, bool fov,
         Mat::AUTO_STEP
     );
 
-    if (fdata->bpp == 3)
+    if (fdata->bpp == 1)
+        cvtColor(cvframe, cvframe, COLOR_GRAY2BGR);
+    else
         cvtColor(cvframe, cvframe, COLOR_RGB2BGR);
 
     if (fov)
