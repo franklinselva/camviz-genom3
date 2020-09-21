@@ -21,35 +21,35 @@
  *
  *                                             Martin Jacquet - September 2020
  */
+
 #include "accamviz.h"
 
 #include "camviz_c_types.h"
 
-#include <opencv2/opencv.hpp>
+#include "codels.hpp"
 
-using namespace cv;
+/* --- Function disp_start ---------------------------------------------- */
 
-/* --- Function start --------------------------------------------------- */
-
-/** Codel display_start of function start.
+/** Codel display_start of function disp_start.
  *
  * Returns genom_ok.
  */
 genom_event
-display_start(const camviz_ids_img_size *size, bool *disp,
-              const genom_context self)
+display_start(uint16_t ratio, const camviz_ids_img_size *size,
+              bool *disp, const genom_context self)
 {
     namedWindow("camviz-genom3", WINDOW_NORMAL);
-    resizeWindow("camviz-genom3", size->w, size->h);
+    resizeWindow("camviz-genom3", round((size->w)/ratio), round((size->h)/ratio));
     *disp = true;
 
+    warnx("start displaying");
     return genom_ok;
 }
 
 
-/* --- Function stop ---------------------------------------------------- */
+/* --- Function disp_stop ----------------------------------------------- */
 
-/** Codel display_stop of function stop.
+/** Codel display_stop of function disp_stop.
  *
  * Returns genom_ok.
  */
@@ -58,6 +58,44 @@ display_stop(bool *disp, const genom_context self)
 {
     destroyWindow("camviz-genom3");
     *disp = false;
+
+    warnx("stop displaying");
+
+    return genom_ok;
+}
+
+
+/* --- Function rec_start ----------------------------------------------- */
+
+/** Codel record_start of function rec_start.
+ *
+ * Returns genom_ok.
+ */
+genom_event
+record_start(const char path[64], const camviz_ids_img_size *size,
+             camviz_recorder **rec, const genom_context self)
+{
+    (*rec)->w = VideoWriter(path, CV_FOURCC('M','J','P','G'), 59, Size(size->w,size->h));
+    (*rec)->on = true;
+
+    warnx("start recording to %s", path);
+
+    return genom_ok;
+}
+
+
+/* --- Function rec_stop ------------------------------------------------ */
+
+/** Codel record_stop of function rec_stop.
+ *
+ * Returns genom_ok.
+ */
+genom_event
+record_stop(camviz_recorder **rec, const genom_context self)
+{
+    (*rec)->w.release();
+
+    warnx("stop recording");
 
     return genom_ok;
 }

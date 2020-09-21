@@ -21,78 +21,103 @@
  *
  *                                             Martin Jacquet - September 2020
  */
+
 #include "accamviz.h"
 
 #include "camviz_c_types.h"
 
-#include <opencv2/opencv.hpp>
+#include "codels.hpp"
 
-using namespace cv;
-
-/* --- Task display ----------------------------------------------------- */
+/* --- Task main -------------------------------------------------------- */
 
 
-/** Codel viz_start of task display.
+/** Codel viz_start of task main.
  *
  * Triggered by camviz_start.
- * Yields to camviz_wait.
+ * Yields to camviz_sleep.
  */
 genom_event
 viz_start(camviz_ids *ids, const genom_context self)
 {
     ids->disp = false;
+    ids->rec = new camviz_recorder();
     ids->fov = false;
-    ids->size = {480, 270};
-    return camviz_wait;
+
+    return camviz_sleep;
 }
 
 
-/** Codel viz_wait of task display.
+/** Codel viz_sleep of task main.
  *
- * Triggered by camviz_wait.
- * Yields to camviz_pause_wait, camviz_disp.
+ * Triggered by camviz_sleep.
+ * Yields to camviz_pause_sleep, camviz_main.
  */
 genom_event
-viz_wait(bool disp, const camviz_frame *frame,
-         const genom_context self)
+viz_sleep(const camviz_frame *frame, camviz_ids_img_size *size,
+          const genom_context self)
 {
-    if (disp && frame->read(self) == genom_ok
-        && frame->data(self) && frame->data(self)->pixels._length > 0)
-        return camviz_disp;
+    if (frame->read(self) == genom_ok && frame->data(self) && frame->data(self)->pixels._length > 0)
+    {
+        *size = {frame->data(self)->width, frame->data(self)->height};
+        return camviz_main;
+    }
     else
-        return camviz_pause_wait;
+        return camviz_pause_sleep;
 }
 
 
-/** Codel viz_display of task display.
+/** Codel viz_main of task main.
  *
- * Triggered by camviz_disp.
- * Yields to camviz_pause_wait.
+ * Triggered by camviz_main.
+ * Yields to camviz_pause_main.
  */
 genom_event
-viz_display(const camviz_ids_img_size *size, bool fov,
-            const camviz_frame *frame, const genom_context self)
+viz_main(const camviz_ids_img_size *size, bool fov,
+         const camviz_frame *frame, bool disp, camviz_recorder **rec,
+         const genom_context self)
 {
     frame->read(self);
     or_sensor_frame* fdata = frame->data(self);
 
+    if (size->w != fdata->width || size->h != fdata->height) {
+        warnx("Invalid size, skipping frame");
+        return camviz_pause_main;
+    }
+
     Mat cvframe = Mat(
         Size(fdata->width, fdata->height),
         (fdata->bpp == 1) ? CV_8UC1 : CV_8UC3,
-        (void*)fdata->pixels._buffer,
+        fdata->pixels._buffer,
         Mat::AUTO_STEP
     );
 
     if (fdata->bpp == 1)
-        cvtColor(cvframe, cvframe, COLOR_GRAY2BGR);
+        cvtColor(cvframe, cvframe, COLOR_GRAY2BGR); // convert to color to display red fov
     else
-        cvtColor(cvframe, cvframe, COLOR_RGB2BGR);
+        cvtColor(cvframe, cvframe, COLOR_RGB2BGR);  // opencv de ses morts
 
     if (fov)
         circle(cvframe, Point(fdata->width/2,fdata->height/2), fdata->height/2, Scalar(0,0,255), 2);
 
-    imshow("camviz-genom3", cvframe);
-    waitKey(1);
+    if (disp) {
+        imshow("camviz-genom3", cvframe);
+        waitKey(1);
+    }
 
-    return camviz_pause_wait;
+    if ((*rec)->on)
+        (*rec)->w.write(cvframe);
+
+    return camviz_pause_main;
+}
+
+/** Codel viz_stop of task main.
+ *
+ * Triggered by camviz_stop.
+ * Yields to camviz_ether.
+ */
+genom_event
+viz_stop(camviz_recorder **rec, bool *disp, const genom_context self)
+{
+  /* skeleton sample: insert your code */
+  /* skeleton sample */ return camviz_ether;
 }

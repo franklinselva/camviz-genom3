@@ -118,8 +118,8 @@ a|.Data structure
 
 == Services
 
-[[disp_fov]]
-=== disp_fov (attribute)
+[[show_fov]]
+=== show_fov (attribute)
 
 [role="small", width="50%", float="right", cols="1"]
 |===
@@ -131,22 +131,48 @@ a|.Inputs
 
 '''
 
-[[start]]
-=== start (function)
+[[disp_start]]
+=== disp_start (function)
+
+[role="small", width="50%", float="right", cols="1"]
+|===
+a|.Inputs
+[disc]
+ * `unsigned short` `ratio` (default `"1"`) Scale ratio for display
+
+|===
+
+'''
+
+[[disp_stop]]
+=== disp_stop (function)
 
 
 '''
 
-[[stop]]
-=== stop (function)
+[[rec_start]]
+=== rec_start (function)
+
+[role="small", width="50%", float="right", cols="1"]
+|===
+a|.Inputs
+[disc]
+ * `string<64>` `path` (default `"/tmp/camviz.avi"`) Video files path
+
+|===
+
+'''
+
+[[rec_stop]]
+=== rec_stop (function)
 
 
 '''
 
 == Tasks
 
-[[display]]
-=== display
+[[main]]
+=== main
 
 [role="small", width="50%", float="right", cols="1"]
 |===

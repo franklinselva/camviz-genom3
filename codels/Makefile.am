@@ -26,7 +26,7 @@ lib_LTLIBRARIES = libcamviz_codels.la
 
 libcamviz_codels_la_SOURCES  =	camviz_c_types.h
 libcamviz_codels_la_SOURCES +=	camviz_codels.cc
-libcamviz_codels_la_SOURCES +=	camviz_display_codels.cc
+libcamviz_codels_la_SOURCES +=	camviz_main_codels.cc
 
 libcamviz_codels_la_CPPFLAGS =	$(requires_CFLAGS)
 libcamviz_codels_la_LIBADD   =	$(requires_LIBS)

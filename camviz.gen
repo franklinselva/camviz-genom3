@@ -47,6 +47,9 @@ component camviz {
      *  port in   or::sensor::extrinsics    extrinsics; // unused
      */
 
+    /* ---- Types --------------------------------------------------------- */
+    native recorder;
+
     /* ---- IDS ----------------------------------------------------------- */
     ids {
         struct img_size {
@@ -54,32 +57,44 @@ component camviz {
             unsigned short h;
         } size;
 
+        recorder rec;
         boolean disp;
         boolean fov;
     };
 
     /* ---- Display task -------------------------------------------------- */
-    task display {
+    task main {
         period 17 ms;
 
         codel<start> viz_start(out ::ids)
-            yield wait;
+            yield sleep;
 
-        codel<wait> viz_wait(in disp, in frame)
-            yield pause::wait, disp;
+        codel<sleep> viz_sleep(in frame, out size)
+            yield pause::sleep, main;
 
-        codel<disp> viz_display(in size, in fov, in frame)
-            yield pause::wait;
+        codel<main> viz_main(in size, in fov, in frame, in disp, inout rec)
+            yield pause::main;
+
+        codel<stop> viz_stop(out rec, out disp)
+            yield ether;
     };
 
     /* ---- Services ------------------------------------------------------ */
-    attribute disp_fov(in fov);
+    attribute show_fov(in fov);
 
-    function start() {
-        codel display_start(in size, out disp);
+    function disp_start(in unsigned short ratio = 1: "Scale ratio for display") {
+        codel display_start(in ratio, in size, out disp);
     };
 
-    function stop() {
+    function disp_stop() {
         codel display_stop(out disp);
+    };
+
+    function rec_start(in string<64> path = "/tmp/camviz.avi": "Video files path") {
+        codel record_start(in path, in size, out rec);
+    };
+
+    function rec_stop() {
+        codel record_stop(out rec);
     };
 };
