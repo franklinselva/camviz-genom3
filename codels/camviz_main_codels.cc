@@ -76,6 +76,8 @@ viz_main(const camviz_ids_img_size *size, bool fov,
          const camviz_frame *frame, bool disp, camviz_recorder **rec,
          const genom_context self)
 {
+    if (!disp && !(*rec)->on) return camviz_pause_main; // sleep if no action is required
+
     frame->read(self);
     or_sensor_frame* fdata = frame->data(self);
 
@@ -91,13 +93,15 @@ viz_main(const camviz_ids_img_size *size, bool fov,
         Mat::AUTO_STEP
     );
 
-    if (fdata->bpp == 1)
-        cvtColor(cvframe, cvframe, COLOR_GRAY2BGR); // convert to color to display red fov
-    else
+    if (fdata->bpp == 3)
         cvtColor(cvframe, cvframe, COLOR_RGB2BGR);  // opencv de ses morts
 
     if (fov)
+    {
+        if (fdata->bpp == 1)
+            cvtColor(cvframe, cvframe, COLOR_GRAY2BGR); // convert to color to display red fov
         circle(cvframe, Point(fdata->width/2,fdata->height/2), fdata->height/2, Scalar(0,0,255), 2);
+    }
 
     if (disp) {
         imshow("camviz-genom3", cvframe);
