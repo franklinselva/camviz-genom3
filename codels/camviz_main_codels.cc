@@ -109,7 +109,11 @@ viz_main(const camviz_ids_img_size *size, bool fov,
     }
 
     if ((*rec)->on)
+    {
+        if (!fov && fdata->bpp == 1)
+            cvtColor(cvframe, cvframe, COLOR_GRAY2BGR); // convert to color to display red fov
         (*rec)->w.write(cvframe);
+    }
 
     return camviz_pause_main;
 }
