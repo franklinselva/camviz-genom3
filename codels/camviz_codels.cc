@@ -36,10 +36,12 @@
  */
 genom_event
 display_start(uint16_t ratio, const camviz_ids_img_size *size,
-              bool *disp, const genom_context self)
+              const char window[64], char win[64], bool *disp,
+              const genom_context self)
 {
-    namedWindow("camviz-genom3", WINDOW_NORMAL);
-    resizeWindow("camviz-genom3", round((size->w)/ratio), round((size->h)/ratio));
+    strcpy(win, window);
+    namedWindow(win, WINDOW_NORMAL);
+    resizeWindow(win, round((size->w)/ratio), round((size->h)/ratio));
     *disp = true;
 
     warnx("start displaying");

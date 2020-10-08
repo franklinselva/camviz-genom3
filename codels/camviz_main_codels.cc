@@ -73,8 +73,8 @@ viz_sleep(const camviz_frame *frame, camviz_ids_img_size *size,
  */
 genom_event
 viz_main(const camviz_ids_img_size *size, bool fov,
-         const camviz_frame *frame, bool disp, camviz_recorder **rec,
-         const genom_context self)
+         const camviz_frame *frame, bool disp, const char win[64],
+         camviz_recorder **rec, const genom_context self)
 {
     if (!disp && !(*rec)->on) return camviz_pause_main; // sleep if no action is required
 
@@ -104,7 +104,7 @@ viz_main(const camviz_ids_img_size *size, bool fov,
     }
 
     if (disp) {
-        imshow("camviz-genom3", cvframe);
+        imshow(win, cvframe);
         waitKey(1);
     }
 

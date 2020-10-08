@@ -103,6 +103,10 @@ a|.Data structure
 a|.Data structure
 [disc]
  * `struct ::or::sensor::extrinsics` `extrinsics`
+ ** `struct ::or::sensor::translation` `trans`
+ *** `float` `tx`
+ *** `float` `ty`
+ *** `float` `tz`
  ** `struct ::or::sensor::rotation` `rot`
  *** `float` `roll`
  *** `float` `pitch`
@@ -139,6 +143,8 @@ a|.Inputs
 a|.Inputs
 [disc]
  * `unsigned short` `ratio` (default `"1"`) Scale ratio for display
+
+ * `string<64>` `window` (default `"camviz-genom3"`) Name of display window
 
 |===
 

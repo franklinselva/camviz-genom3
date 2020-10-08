@@ -60,6 +60,8 @@ component camviz {
         recorder rec;
         boolean disp;
         boolean fov;
+
+        string<64> win;
     };
 
     /* ---- Display task -------------------------------------------------- */
@@ -72,7 +74,7 @@ component camviz {
         codel<sleep> viz_sleep(in frame, out size)
             yield pause::sleep, main;
 
-        codel<main> viz_main(in size, in fov, in frame, in disp, inout rec)
+        codel<main> viz_main(in size, in fov, in frame, in disp, in win, inout rec)
             yield pause::main;
 
         codel<stop> viz_stop(out rec, out disp)
@@ -82,8 +84,9 @@ component camviz {
     /* ---- Services ------------------------------------------------------ */
     attribute show_fov(in fov);
 
-    function disp_start(in unsigned short ratio = 1: "Scale ratio for display") {
-        codel display_start(in ratio, in size, out disp);
+    function disp_start(in unsigned short ratio = 1: "Scale ratio for display",
+                        in string<64> window = "camviz-genom3": "Name of display window") {
+        codel display_start(in ratio, in size, in window, out win, out disp);
     };
 
     function disp_stop() {
