@@ -99,8 +99,9 @@ viz_main(const camviz_ids_img_size *size, bool fov,
     if (fov)
     {
         if (fdata->bpp == 1)
-            cvtColor(cvframe, cvframe, COLOR_GRAY2BGR); // convert to color to display red fov
-        circle(cvframe, Point(fdata->width/2,fdata->height/2), fdata->height/2, Scalar(0,0,255), 2);
+            circle(cvframe, Point(fdata->width/2,fdata->height/2), fdata->height/2, Scalar(0), 2);
+        else
+            circle(cvframe, Point(fdata->width/2,fdata->height/2), fdata->height/2, Scalar(0,0,255), 2);
     }
 
     if (disp) {
@@ -110,11 +111,9 @@ viz_main(const camviz_ids_img_size *size, bool fov,
 
     if ((*rec)->on)
     {
-        if (!fov && fdata->bpp == 1)
-            cvtColor(cvframe, cvframe, COLOR_GRAY2BGR); // convert to color to display red fov
+        if (fdata->bpp == 1) cvtColor(cvframe, cvframe, COLOR_GRAY2BGR);
         (*rec)->w.write(cvframe);
     }
-
     return camviz_pause_main;
 }
 
