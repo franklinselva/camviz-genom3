@@ -27,6 +27,7 @@
 #include "camviz_c_types.h"
 
 #include "codels.hpp"
+#include <unistd.h>
 
 /* --- Task main -------------------------------------------------------- */
 
@@ -59,6 +60,7 @@ viz_sleep(const camviz_frame *frame, camviz_ids_img_size *size,
     if (frame->read(self) == genom_ok && frame->data(self) && frame->data(self)->pixels._length > 0)
     {
         *size = {frame->data(self)->width, frame->data(self)->height};
+        msleep(1000);
         return camviz_main;
     }
     else
@@ -86,9 +88,15 @@ viz_main(const camviz_ids_img_size *size, bool fov,
         return camviz_pause_main;
     }
 
+    int type;
+    if      (fdata->bpp == 1) type = CV_8UC1;
+    else if (fdata->bpp == 2) type = CV_16UC1;
+    else if (fdata->bpp == 3) type = CV_8UC3;
+    else if (fdata->bpp == 4) type = CV_8UC4;
+
     Mat cvframe = Mat(
         Size(fdata->width, fdata->height),
-        (fdata->bpp == 1) ? CV_8UC1 : CV_8UC3,
+        type,
         fdata->pixels._buffer,
         Mat::AUTO_STEP
     );
@@ -98,7 +106,7 @@ viz_main(const camviz_ids_img_size *size, bool fov,
 
     if (fov)
     {
-        if (fdata->bpp == 1)
+        if (fdata->bpp < 3)
             circle(cvframe, Point(fdata->width/2,fdata->height/2), fdata->height/2, Scalar(0), 2);
         else
             circle(cvframe, Point(fdata->width/2,fdata->height/2), fdata->height/2, Scalar(0,0,255), 2);
@@ -112,7 +120,12 @@ viz_main(const camviz_ids_img_size *size, bool fov,
     if ((*rec)->on)
     {
         if (fdata->bpp == 1) cvtColor(cvframe, cvframe, COLOR_GRAY2BGR);
-        (*rec)->w.write(cvframe);
+        try {
+            (*rec)->w.write(cvframe);
+        }
+        catch (cv::Exception& e) {
+            warnx("unable to write frame, skipping");
+        }
     }
     return camviz_pause_main;
 }
@@ -125,6 +138,10 @@ viz_main(const camviz_ids_img_size *size, bool fov,
 genom_event
 viz_stop(camviz_recorder **rec, bool *disp, const genom_context self)
 {
-  /* skeleton sample: insert your code */
-  /* skeleton sample */ return camviz_ether;
+    destroyWindow("camviz-genom3");
+    *disp = false;
+    (*rec)->w.release();
+    (*rec)->on = false;
+
+    return camviz_ether;
 }

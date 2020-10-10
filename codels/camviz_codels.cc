@@ -62,7 +62,6 @@ display_stop(bool *disp, const genom_context self)
     *disp = false;
 
     warnx("stop displaying");
-
     return genom_ok;
 }
 
@@ -81,7 +80,6 @@ record_start(const char path[64], const camviz_ids_img_size *size,
     (*rec)->on = true;
 
     warnx("start recording to %s", path);
-
     return genom_ok;
 }
 
@@ -96,8 +94,8 @@ genom_event
 record_stop(camviz_recorder **rec, const genom_context self)
 {
     (*rec)->w.release();
+    (*rec)->on = false;
 
     warnx("stop recording");
-
     return genom_ok;
 }
