@@ -60,7 +60,7 @@ viz_sleep(const camviz_frame *frame, camviz_ids_img_size *size,
     if (frame->read(self) == genom_ok && frame->data(self) && frame->data(self)->pixels._length > 0)
     {
         *size = {frame->data(self)->width, frame->data(self)->height};
-        msleep(1000);
+        usleep(1000);
         return camviz_main;
     }
     else
