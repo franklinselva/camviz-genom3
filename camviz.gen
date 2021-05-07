@@ -33,7 +33,7 @@ component camviz {
     email           "martin.jacquet@laas.fr";
     lang			"c";
     require         "genom3 >= 2.99.26";
-    codels-require  "opencv";
+    codels-require  "opencv4";
 
     /* ---- Interfaces ---------------------------------------------------- */
     uses or_camera;

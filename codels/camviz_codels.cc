@@ -76,7 +76,7 @@ genom_event
 record_start(const char path[64], const camviz_ids_img_size *size,
              camviz_recorder **rec, const genom_context self)
 {
-    (*rec)->w = VideoWriter(path, CV_FOURCC('M','J','P','G'), 59, Size(size->w,size->h));
+    (*rec)->w = VideoWriter(path, VideoWriter::fourcc('M','J','P','G'), 59, Size(size->w,size->h));
     (*rec)->on = true;
 
     warnx("start recording to %s", path);

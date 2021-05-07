@@ -56,7 +56,7 @@ PKG_CHECK_MODULES(requires, [
   genom3 >= 2.99.26
 ])
 PKG_CHECK_MODULES(codels_requires, [
-  opencv
+  opencv4
 ])
 
 AC_PATH_PROG(GENOM3, [genom3], [no])
