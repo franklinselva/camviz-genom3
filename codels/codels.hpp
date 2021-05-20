@@ -21,6 +21,8 @@
  *
  *                                             Martin Jacquet - September 2020
  */
+#ifndef H_CAMVIZ_CODELS
+#define H_CAMVIZ_CODELS
 
 #include "accamviz.h"
 
@@ -35,3 +37,5 @@ struct camviz_recorder {
     VideoWriter w;
     bool on;
 };
+
+#endif /* H_CAMVIZ_CODELS */

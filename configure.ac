@@ -55,9 +55,9 @@ PKG_CHECK_MODULES(requires, [
   vision-idl
   genom3 >= 2.99.26
 ])
-PKG_CHECK_EXISTS([opencv4],
-[PKG_CHECK_MODULES(opencv4, [opencv4])],
-[PKG_CHECK_MODULES(opencv, [opencv])])
+PKG_CHECK_MODULES(codels_requires, [
+  opencv
+])
 
 AC_PATH_PROG(GENOM3, [genom3], [no])
 if test "$GENOM3" = "no"; then
