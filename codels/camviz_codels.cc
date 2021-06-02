@@ -99,3 +99,33 @@ record_stop(camviz_recorder **rec, const genom_context self)
     warnx("stop recording");
     return genom_ok;
 }
+
+
+/* --- Function add_pixel_display --------------------------------------- */
+
+/** Codel add_pixel_display of function add_pixel_display.
+ *
+ * Returns genom_ok.
+ * Throws camviz_e_sys.
+ */
+genom_event
+add_pixel_display(const char port_name[128],
+                  sequence_camviz_portinfo *ports,
+                  const genom_context self)
+{
+    // Add new pixel in port list
+    uint16_t i;
+    for(i=0; i<ports->_length; i++)
+        if (!strcmp(ports->_buffer[i], port_name))
+            return camviz_e_sys_error("pixel already in display", self);
+
+    if (i >= ports->_maximum)
+        if (genom_sequence_reserve(ports, i + 1))
+            return camviz_e_sys_error("add_pixel impossible", self);
+    (ports->_length)++;
+    strncpy(ports->_buffer[i], port_name, 128);
+
+    warnx("display new pixel: %s", port_name);
+
+    return genom_ok;
+}

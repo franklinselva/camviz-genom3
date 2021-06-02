@@ -75,8 +75,10 @@ viz_sleep(const camviz_frame *frame, camviz_ids_img_size *size,
  */
 genom_event
 viz_main(const camviz_ids_img_size *size, bool fov,
-         const camviz_frame *frame, bool disp, const char win[64],
-         camviz_recorder **rec, const genom_context self)
+         const camviz_frame *frame, const camviz_pixels *pixels,
+         const sequence_camviz_portinfo *ports, bool disp,
+         const char win[64], camviz_recorder **rec,
+         const genom_context self)
 {
     if (!disp && !(*rec)->on) return camviz_pause_main; // sleep if no action is required
 
@@ -111,6 +113,16 @@ viz_main(const camviz_ids_img_size *size, bool fov,
         else
             circle(cvframe, Point(fdata->width/2,fdata->height/2), fdata->height/2, Scalar(0,0,255), 2);
     }
+
+    for (uint16_t i=0; i<ports->_length; i++)
+        if (pixels->read(ports->_buffer[i], self) == genom_ok && pixels->data(ports->_buffer[i], self)) {
+            uint16_t x = pixels->data(ports->_buffer[i], self)->x;
+            uint16_t y = pixels->data(ports->_buffer[i], self)->y;
+            if (fdata->bpp < 3)
+                circle(cvframe, Point(x,y), 2, Scalar(0), 2);
+            else
+                circle(cvframe, Point(x,y), 2, Scalar(0,0,255), 2);
+        }
 
     if (disp) {
         imshow(win, cvframe);

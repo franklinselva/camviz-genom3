@@ -26,6 +26,7 @@
 #pragma require "vision-idl"
 
 #include "or/sensor/camera.gen"
+#include "or/sensor/pixel.idl"
 
 /* ---- Component declaration --------------------------------------------- */
 component camviz {
@@ -39,8 +40,10 @@ component camviz {
     uses or_camera;
 
     /* ---- Exceptions ---------------------------------------------------- */
+    exception e_sys { short code; string<128> what; };
 
     /* ---- Ports --------------------------------------------------------- */
+    port multiple in    or::sensor::pixel   pixels;
     /* interfaces ports:
      *  port in   or::sensor::frame         frame;
      *  port in   or::sensor::intrinsics    intrinsics; // unused
@@ -49,6 +52,7 @@ component camviz {
 
     /* ---- Types --------------------------------------------------------- */
     native recorder;
+    typedef string<128> portinfo;
 
     /* ---- IDS ----------------------------------------------------------- */
     ids {
@@ -62,6 +66,8 @@ component camviz {
         boolean fov;
 
         string<64> win;
+
+        sequence<portinfo> ports;
     };
 
     /* ---- Display task -------------------------------------------------- */
@@ -74,7 +80,7 @@ component camviz {
         codel<sleep> viz_sleep(in frame, out size)
             yield pause::sleep, main;
 
-        codel<main> viz_main(in size, in fov, in frame, in disp, in win, inout rec)
+        codel<main> viz_main(in size, in fov, in frame, in pixels, in ports, in disp, in win, inout rec)
             yield pause::main;
 
         codel<stop> viz_stop(out rec, out disp)
@@ -82,7 +88,9 @@ component camviz {
     };
 
     /* ---- Services ------------------------------------------------------ */
-    attribute show_fov(in fov);
+    attribute show_fov(in fov) {
+        doc "Toggle display of the circular FOV in the image frame.";
+    };
 
     function disp_start(in unsigned short ratio = 1: "Scale ratio for display",
                         in string<64> window = "camviz-genom3": "Name of display window") {
@@ -99,5 +107,11 @@ component camviz {
 
     function rec_stop() {
         codel record_stop(out rec);
+    };
+
+    function add_pixel_display(in string<128> port_name = : "Name of the pixel input port") {
+        doc "Add a subport to the pixels subport, in order to display it in the frame.";
+        throw e_sys;
+        codel add_pixel_display(in port_name, out ports);
     };
 };

@@ -38,4 +38,16 @@ struct camviz_recorder {
     bool on;
 };
 
+static inline genom_event
+camviz_e_sys_error(const char *s, genom_context self)
+{
+    camviz_e_sys_detail d;
+    char buf[64], *p;
+    d.code = errno;
+
+    p = strerror_r(d.code, buf, sizeof(buf));
+    snprintf(d.what, sizeof(d.what), "%s%s%s", s ? s : "", s ? ": " : "", p);
+    return camviz_e_sys(&d, self);
+}
+
 #endif /* H_CAMVIZ_CODELS */
