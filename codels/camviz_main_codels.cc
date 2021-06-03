@@ -36,13 +36,18 @@
  *
  * Triggered by camviz_start.
  * Yields to camviz_sleep.
+ * Throws camviz_e_sys.
  */
 genom_event
 viz_start(camviz_ids *ids, const genom_context self)
 {
-    ids->disp = false;
+    ids->ratio = 0;
     ids->rec = new camviz_recorder();
     ids->fov = false;
+    ids->size = {0,0};
+    if (genom_sequence_reserve(&ids->pixel_ports, 0))
+        return camviz_e_sys_error("cannot reserve sequence", self);
+    ids->pixel_ports._length = 0;
 
     return camviz_sleep;
 }
@@ -52,6 +57,7 @@ viz_start(camviz_ids *ids, const genom_context self)
  *
  * Triggered by camviz_sleep.
  * Yields to camviz_pause_sleep, camviz_main.
+ * Throws camviz_e_sys.
  */
 genom_event
 viz_sleep(const camviz_frame *frame, camviz_ids_img_size *size,
@@ -72,29 +78,25 @@ viz_sleep(const camviz_frame *frame, camviz_ids_img_size *size,
  *
  * Triggered by camviz_main.
  * Yields to camviz_pause_main.
+ * Throws camviz_e_sys.
  */
 genom_event
-viz_main(const camviz_ids_img_size *size, bool fov,
-         const camviz_frame *frame, const camviz_pixels *pixels,
-         const sequence_camviz_portinfo *ports, bool disp,
-         const char win[64], camviz_recorder **rec,
-         const genom_context self)
+viz_main(const sequence_camviz_port_info *pixel_ports, float ratio,
+         bool fov, const camviz_frame *frame,
+         const camviz_pixel *pixel, const char win[64],
+         camviz_recorder **rec, const genom_context self)
 {
-    if (!disp && !(*rec)->on) return camviz_pause_main; // sleep if no action is required
+    if (!ratio && !(*rec)->on) return camviz_pause_main; // sleep if no action is required
 
     frame->read(self);
     or_sensor_frame* fdata = frame->data(self);
-
-    if (size->w != fdata->width || size->h != fdata->height) {
-        warnx("Invalid size, skipping frame");
-        return camviz_pause_main;
-    }
 
     int type;
     if      (fdata->bpp == 1) type = CV_8UC1;
     else if (fdata->bpp == 2) type = CV_16UC1;
     else if (fdata->bpp == 3) type = CV_8UC3;
     else if (fdata->bpp == 4) type = CV_8UC4;
+    else return camviz_e_sys_error("invalid frame type", self);
 
     Mat cvframe = Mat(
         Size(fdata->width, fdata->height),
@@ -114,17 +116,21 @@ viz_main(const camviz_ids_img_size *size, bool fov,
             circle(cvframe, Point(fdata->width/2,fdata->height/2), fdata->height/2, Scalar(0,0,255), 2);
     }
 
-    for (uint16_t i=0; i<ports->_length; i++)
-        if (pixels->read(ports->_buffer[i], self) == genom_ok && pixels->data(ports->_buffer[i], self)) {
-            uint16_t x = pixels->data(ports->_buffer[i], self)->x;
-            uint16_t y = pixels->data(ports->_buffer[i], self)->y;
+    for (uint16_t i=0; i<pixel_ports->_length; i++)
+        if (pixel->read(pixel_ports->_buffer[i], self) == genom_ok && pixel->data(pixel_ports->_buffer[i], self)) {
+            uint16_t x = pixel->data(pixel_ports->_buffer[i], self)->x;
+            uint16_t y = pixel->data(pixel_ports->_buffer[i], self)->y;
             if (fdata->bpp < 3)
                 circle(cvframe, Point(x,y), 2, Scalar(0), 2);
             else
                 circle(cvframe, Point(x,y), 2, Scalar(0,0,255), 2);
         }
 
-    if (disp) {
+    if (ratio) {
+        if (getWindowProperty(win, WND_PROP_AUTOSIZE) == -1) {
+            namedWindow(win, WINDOW_NORMAL);
+            resizeWindow(win, round(fdata->width / ratio), round(fdata->height / ratio));
+        }
         imshow(win, cvframe);
         waitKey(1);
     }
@@ -146,12 +152,14 @@ viz_main(const camviz_ids_img_size *size, bool fov,
  *
  * Triggered by camviz_stop.
  * Yields to camviz_ether.
+ * Throws camviz_e_sys.
  */
 genom_event
-viz_stop(camviz_recorder **rec, bool *disp, const genom_context self)
+viz_stop(const char win[64], camviz_recorder **rec, float *ratio,
+         const genom_context self)
 {
-    destroyWindow("camviz-genom3");
-    *disp = false;
+    destroyWindow(win);
+    *ratio = 0;
     (*rec)->w.release();
     (*rec)->on = false;
 

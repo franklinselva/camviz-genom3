@@ -35,14 +35,12 @@
  * Returns genom_ok.
  */
 genom_event
-display_start(uint16_t ratio, const camviz_ids_img_size *size,
-              const char window[64], char win[64], bool *disp,
+display_start(float disp_ratio, const camviz_ids_img_size *size,
+              const char window[64], char win[64], float *ratio,
               const genom_context self)
 {
     strcpy(win, window);
-    namedWindow(win, WINDOW_NORMAL);
-    resizeWindow(win, round((size->w)/ratio), round((size->h)/ratio));
-    *disp = true;
+    *ratio = disp_ratio;
 
     warnx("start displaying");
     return genom_ok;
@@ -56,10 +54,11 @@ display_start(uint16_t ratio, const camviz_ids_img_size *size,
  * Returns genom_ok.
  */
 genom_event
-display_stop(bool *disp, const genom_context self)
+display_stop(const char win[64], float *ratio,
+             const genom_context self)
 {
-    destroyWindow("camviz-genom3");
-    *disp = false;
+    destroyWindow(win);
+    ratio = 0;
 
     warnx("stop displaying");
     return genom_ok;
@@ -73,9 +72,12 @@ display_stop(bool *disp, const genom_context self)
  * Returns genom_ok.
  */
 genom_event
-record_start(const char path[64], const camviz_ids_img_size *size,
+record_start(const char path[128], const camviz_ids_img_size *size,
              camviz_recorder **rec, const genom_context self)
 {
+    if (size->w == 0 || size->h == 0)
+        return camviz_e_sys_error("no frame to record yet", self);
+
     (*rec)->w = VideoWriter(path, VideoWriter::fourcc('M','J','P','G'), 59, Size(size->w,size->h));
     (*rec)->on = true;
 
@@ -109,21 +111,21 @@ record_stop(camviz_recorder **rec, const genom_context self)
  * Throws camviz_e_sys.
  */
 genom_event
-add_pixel_display(const char port_name[128],
-                  sequence_camviz_portinfo *ports,
+add_pixel_display(const char port_name[64],
+                  sequence_camviz_port_info *pixel_ports,
                   const genom_context self)
 {
     // Add new pixel in port list
     uint16_t i;
-    for(i=0; i<ports->_length; i++)
-        if (!strcmp(ports->_buffer[i], port_name))
+    for(i=0; i<pixel_ports->_length; i++)
+        if (!strcmp(pixel_ports->_buffer[i], port_name))
             return camviz_e_sys_error("pixel already in display", self);
 
-    if (i >= ports->_maximum)
-        if (genom_sequence_reserve(ports, i + 1))
+    if (i >= pixel_ports->_maximum)
+        if (genom_sequence_reserve(pixel_ports, i + 1))
             return camviz_e_sys_error("add_pixel impossible", self);
-    (ports->_length)++;
-    strncpy(ports->_buffer[i], port_name, 128);
+    (pixel_ports->_length)++;
+    strcpy(pixel_ports->_buffer[i], port_name);
 
     warnx("display new pixel: %s", port_name);
 

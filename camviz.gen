@@ -40,10 +40,11 @@ component camviz {
     uses or_camera;
 
     /* ---- Exceptions ---------------------------------------------------- */
-    exception e_sys { short code; string<128> what; };
+    exception e_sys { short code; string<64> what; };
 
     /* ---- Ports --------------------------------------------------------- */
-    port multiple in    or::sensor::pixel   pixels;
+    // port in    or::sensor::frame   frame;
+    port multiple in    or::sensor::pixel   pixel;
     /* interfaces ports:
      *  port in   or::sensor::frame         frame;
      *  port in   or::sensor::intrinsics    intrinsics; // unused
@@ -52,7 +53,7 @@ component camviz {
 
     /* ---- Types --------------------------------------------------------- */
     native recorder;
-    typedef string<128> portinfo;
+    typedef string<64> port_info;
 
     /* ---- IDS ----------------------------------------------------------- */
     ids {
@@ -61,18 +62,19 @@ component camviz {
             unsigned short h;
         } size;
 
+        float ratio;
         recorder rec;
-        boolean disp;
         boolean fov;
 
         string<64> win;
 
-        sequence<portinfo> ports;
+        sequence<port_info>  pixel_ports;
     };
 
     /* ---- Display task -------------------------------------------------- */
     task main {
-        period 17 ms;
+        period 40 ms;
+        throw e_sys;
 
         codel<start> viz_start(out ::ids)
             yield sleep;
@@ -80,10 +82,10 @@ component camviz {
         codel<sleep> viz_sleep(in frame, out size)
             yield pause::sleep, main;
 
-        codel<main> viz_main(in size, in fov, in frame, in pixels, in ports, in disp, in win, inout rec)
+        codel<main> viz_main(in pixel_ports, in ratio, in fov, in frame, in pixel, in win, inout rec)
             yield pause::main;
 
-        codel<stop> viz_stop(out rec, out disp)
+        codel<stop> viz_stop(in win, out rec, out ratio)
             yield ether;
     };
 
@@ -92,16 +94,16 @@ component camviz {
         doc "Toggle display of the circular FOV in the image frame.";
     };
 
-    function disp_start(in unsigned short ratio = 1: "Scale ratio for display",
+    function disp_start(in float disp_ratio = 1: "Scale ratio for display",
                         in string<64> window = "camviz-genom3": "Name of display window") {
-        codel display_start(in ratio, in size, in window, out win, out disp);
+        codel display_start(in disp_ratio, in size, in window, out win, out ratio);
     };
 
     function disp_stop() {
-        codel display_stop(out disp);
+        codel display_stop(in win, out ratio);
     };
 
-    function rec_start(in string<64> path = "/tmp/camviz.avi": "Video files path") {
+    function rec_start(in string<128> path = "/tmp/camviz.avi": "Video files path") {
         codel record_start(in path, in size, out rec);
     };
 
@@ -109,9 +111,9 @@ component camviz {
         codel record_stop(out rec);
     };
 
-    function add_pixel_display(in string<128> port_name = : "Name of the pixel input port") {
+    function add_pixel_display(in string<64> port_name = : "Name of the pixel input port") {
         doc "Add a subport to the pixels subport, in order to display it in the frame.";
         throw e_sys;
-        codel add_pixel_display(in port_name, out ports);
+        codel add_pixel_display(in port_name, out pixel_ports);
     };
 };
