@@ -75,13 +75,13 @@ component camviz {
     activity add_camera(in string<64> port_name = : "Frame input subport") {
         doc "Starts the monitoring of a given camera frame stream.";
         task main;
-        local unsigned short i;
+        local unsigned short cam_id;
 
-        codel<start> camera_start(in port_name, out cameras, out i)
+        codel<start> camera_start(in port_name, out cameras, out cam_id)
             yield main;
-        codel<main> camera_main(in i, in prefix, in ratio, in frame, in pixel, inout cameras)
+        codel<main> camera_main(in cam_id, in prefix, in ratio, in frame, in pixel, inout cameras)
             yield pause::main;
-        codel<stop> camera_stop(in i, out cameras)
+        codel<stop> camera_stop(in cam_id, out cameras)
             yield ether;
     };
 
@@ -93,6 +93,13 @@ component camviz {
 
     attribute record(in prefix = "~/" : "Prefix of recording files") {
         doc "Set recording prefix ratio. Set to empty to disable.";
+    };
+
+    function add_pixel_display(in string<64> pixel_name = : "Name of the pixel input port",
+                               in string<64> cam_name = : "Name of camera for the display") {
+        doc "Add a subport to the pixels subport, in order to display it in the frame.";
+        throw e_sys;
+        codel add_pixel(in pixel_name, in cam_name, inout cameras);
     };
 
     function stop() {

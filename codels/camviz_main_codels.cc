@@ -62,24 +62,24 @@ viz_start(camviz_ids *ids, const genom_context self)
  */
 genom_event
 camera_start(const char port_name[64],
-             sequence_camviz_camera_s *cameras, uint16_t *i,
+             sequence_camviz_camera_s *cameras, uint16_t *cam_id,
              const genom_context self)
 {
     // Add new camera in port list
-    for(*i=0; *i<cameras->_length; (*i)++)
-        if (!strcmp(cameras->_buffer[*i].name, port_name))
+    for(*cam_id=0; *cam_id<cameras->_length; (*cam_id)++)
+        if (!strcmp(cameras->_buffer[*cam_id].name, port_name))
             return camviz_e_sys_error("camera already monitored", self);
 
-    if (*i >= cameras->_maximum)
-        if (genom_sequence_reserve(cameras, *i + 1))
+    if (*cam_id >= cameras->_maximum)
+        if (genom_sequence_reserve(cameras, *cam_id + 1))
             return camviz_e_sys_error("add_camera failed", self);
     (cameras->_length)++;
-    strcpy(cameras->_buffer[*i].name, port_name);
+    strcpy(cameras->_buffer[*cam_id].name, port_name);
 
     // Init camera fields
-    if (genom_sequence_reserve(&cameras->_buffer[*i].pixel_ports, 0))
+    if (genom_sequence_reserve(&cameras->_buffer[*cam_id].pixel_ports, 0))
         return camviz_e_sys_error("cannot initialize sequence", self);
-    cameras->_buffer[*i].pixel_ports._length = 0;
+    cameras->_buffer[*cam_id].pixel_ports._length = 0;
 
     warnx("monitoring camera %s", port_name);
     return camviz_main;
@@ -92,14 +92,14 @@ camera_start(const char port_name[64],
  * Throws camviz_e_sys.
  */
 genom_event
-camera_main(uint16_t i, const char prefix[64], float ratio,
+camera_main(uint16_t cam_id, const char prefix[64], float ratio,
             const camviz_frame *frame, const camviz_pixel *pixel,
             sequence_camviz_camera_s *cameras,
             const genom_context self)
 {
     // Sleep if no action is required
     if (!strcmp(prefix, "\0") && !ratio) return camviz_pause_main;
-    camviz_camera_s* cam = &cameras->_buffer[i];
+    camviz_camera_s* cam = &cameras->_buffer[cam_id];
     if (frame->read(cam->name, self) != genom_ok || !frame->data(cam->name, self)) return camviz_pause_main;
 
     // Retrieve frame and transform to opencv format
@@ -175,17 +175,17 @@ camera_main(uint16_t i, const char prefix[64], float ratio,
  * Throws camviz_e_sys.
  */
 genom_event
-camera_stop(uint16_t i, sequence_camviz_camera_s *cameras,
+camera_stop(uint16_t cam_id, sequence_camviz_camera_s *cameras,
             const genom_context self)
 {
-    destroyWindow(cameras->_buffer[i].name);
-    if (cameras->_buffer[i].rec)
-        cameras->_buffer[i].rec->w.release();
-    cameras->_buffer[i].rec = NULL;
+    destroyWindow(cameras->_buffer[cam_id].name);
+    if (cameras->_buffer[cam_id].rec)
+        cameras->_buffer[cam_id].rec->w.release();
+    cameras->_buffer[cam_id].rec = NULL;
 
-    warnx("stopped monitoring camera %s", cameras->_buffer[i].name);
+    warnx("stopped monitoring camera %s", cameras->_buffer[cam_id].name);
 
-    strcpy(cameras->_buffer[i].name, "\0");
+    strcpy(cameras->_buffer[cam_id].name, "\0");
     cameras->_length--;
 
     return camviz_ether;

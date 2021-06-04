@@ -219,6 +219,29 @@ Set recording prefix ratio. Set to empty to disable.
 
 '''
 
+[[add_pixel_display]]
+=== add_pixel_display (function)
+
+[role="small", width="50%", float="right", cols="1"]
+|===
+a|.Inputs
+[disc]
+ * `string<64>` `pixel_name` Name of the pixel input port
+
+ * `string<64>` `cam_name` Name of camera for the display
+
+a|.Throws
+[disc]
+ * `exception ::camviz::e_sys`
+ ** `short` `code`
+ ** `string<64>` `what`
+
+|===
+
+Add a subport to the pixels subport, in order to display it in the frame.
+
+'''
+
 [[stop]]
 === stop (function)
 
@@ -229,6 +252,7 @@ a|.Context
   * Interrupts `<<add_camera>>`
   * Interrupts `<<show>>`
   * Interrupts `<<record>>`
+  * Interrupts `<<add_pixel_display>>`
   * Interrupts `<<stop>>`
 |===
 
