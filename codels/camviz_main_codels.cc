@@ -35,7 +35,7 @@
 /** Codel viz_start of task main.
  *
  * Triggered by camviz_start.
- * Yields to camviz_main.
+ * Yields to camviz_ether.
  * Throws camviz_e_sys.
  */
 genom_event
@@ -48,94 +48,145 @@ viz_start(camviz_ids *ids, const genom_context self)
         return camviz_e_sys_error("cannot initialize sequence", self);
     ids->cameras._length = 0;
 
-    return camviz_main;
+    return camviz_ether;
 }
 
 
-/** Codel viz_main of task main.
+/* --- Activity add_camera ---------------------------------------------- */
+
+/** Codel camera_start of activity add_camera.
+ *
+ * Triggered by camviz_start.
+ * Yields to camviz_main.
+ * Throws camviz_e_sys.
+ */
+genom_event
+camera_start(const char port_name[64],
+             sequence_camviz_camera_s *cameras, uint16_t *i,
+             const genom_context self)
+{
+    // Add new camera in port list
+    for(*i=0; *i<cameras->_length; (*i)++)
+        if (!strcmp(cameras->_buffer[*i].name, port_name))
+            return camviz_e_sys_error("camera already monitored", self);
+
+    if (*i >= cameras->_maximum)
+        if (genom_sequence_reserve(cameras, *i + 1))
+            return camviz_e_sys_error("add_camera failed", self);
+    (cameras->_length)++;
+    strcpy(cameras->_buffer[*i].name, port_name);
+
+    // Init camera fields
+    if (genom_sequence_reserve(&cameras->_buffer[*i].pixel_ports, 0))
+        return camviz_e_sys_error("cannot initialize sequence", self);
+    cameras->_buffer[*i].pixel_ports._length = 0;
+
+    warnx("monitoring camera %s", port_name);
+    return camviz_main;
+}
+
+/** Codel camera_main of activity add_camera.
  *
  * Triggered by camviz_main.
  * Yields to camviz_pause_main.
  * Throws camviz_e_sys.
  */
 genom_event
-viz_main(const char prefix[64], float ratio, const camviz_frame *frame,
-         const camviz_pixel *pixel, sequence_camviz_camera_s *cameras,
-         const genom_context self)
+camera_main(uint16_t i, const char prefix[64], float ratio,
+            const camviz_frame *frame, const camviz_pixel *pixel,
+            sequence_camviz_camera_s *cameras,
+            const genom_context self)
 {
-    if (!strcmp(prefix, "\0") && !ratio) return camviz_pause_main; // Sleep if no action is required
+    // Sleep if no action is required
+    if (!strcmp(prefix, "\0") && !ratio) return camviz_pause_main;
+    camviz_camera_s* cam = &cameras->_buffer[i];
+    if (frame->read(cam->name, self) != genom_ok || !frame->data(cam->name, self)) return camviz_pause_main;
 
-    for (uint8_t i=0; i< cameras->_length; i++)
-    {
-        camviz_camera_s* cam = &cameras->_buffer[i];
-std::cout << cam->name << std::endl;
-        if (frame->read(cam->name, self) != genom_ok || !frame->data(cam->name, self)) continue; // Sleep if no action is required
+    // Retrieve frame and transform to opencv format
+    or_sensor_frame* fdata = frame->data(cam->name, self);
 
-        // Retrieve frame and transform to opencv format
-        or_sensor_frame* fdata = frame->data(cam->name, self);
-std::cout << fdata << std::endl;
-std::cout << fdata->bpp << std::endl;
-        int type;
-        if      (fdata->bpp == 1) type = CV_8UC1;
-        else if (fdata->bpp == 2) type = CV_16UC1;
-        else if (fdata->bpp == 3) type = CV_8UC3;
-        else if (fdata->bpp == 4) type = CV_8UC4;
-        else return camviz_e_sys_error("invalid frame type", self);
+    int type;
+    if      (fdata->bpp == 1) type = CV_8UC1;
+    else if (fdata->bpp == 2) type = CV_16UC1;
+    else if (fdata->bpp == 3) type = CV_8UC3;
+    else if (fdata->bpp == 4) type = CV_8UC4;
+    else return camviz_e_sys_error("invalid frame type", self);
 
-        Mat cvframe = Mat(
-            Size(fdata->width, fdata->height),
-            type,
-            fdata->pixels._buffer,
-            Mat::AUTO_STEP
-        );
+    Mat cvframe = Mat(
+        Size(fdata->width, fdata->height),
+        type,
+        fdata->pixels._buffer,
+        Mat::AUTO_STEP
+    );
 
-        if (fdata->bpp == 3)
-            cvtColor(cvframe, cvframe, COLOR_RGB2BGR);  // opencv de ses morts
+    if (fdata->bpp == 3) cvtColor(cvframe, cvframe, COLOR_RGB2BGR);  // opencv de ses morts
 
-        // Go through pixel ports and display, if any
-        for (uint16_t i=0; i<cam->pixel_ports._length; i++)
-            if (pixel->read(cam->pixel_ports._buffer[i], self) == genom_ok &&
-                pixel->data(cam->pixel_ports._buffer[i], self))
-            {
-                uint16_t x = pixel->data(cam->pixel_ports._buffer[i], self)->x;
-                uint16_t y = pixel->data(cam->pixel_ports._buffer[i], self)->y;
-                circle(cvframe, Point(x,y), 2, fdata->bpp < 3 ? Scalar(0) : Scalar(0,0,255), 2);
-            }
-
-        // Display if required
-        if (ratio)
+    // Go through pixel ports and display, if any
+    for (uint16_t i=0; i<cam->pixel_ports._length; i++)
+        if (pixel->read(cam->pixel_ports._buffer[i], self) == genom_ok &&
+            pixel->data(cam->pixel_ports._buffer[i], self))
         {
-            if (getWindowProperty(cam->name, WND_PROP_AUTOSIZE) == -1)
-            {
-                namedWindow(cam->name, WINDOW_NORMAL);
-                resizeWindow(cam->name, round(fdata->width / ratio), round(fdata->height / ratio));
-            }
-            imshow(cam->name, cvframe);
-            waitKey(1);
+            uint16_t x = pixel->data(cam->pixel_ports._buffer[i], self)->x;
+            uint16_t y = pixel->data(cam->pixel_ports._buffer[i], self)->y;
+            circle(cvframe, Point(x,y), 2, fdata->bpp < 3 ? Scalar(0) : Scalar(0,0,255), 2);
         }
 
-        // Record if required
-        if (strcmp(prefix, "\0"))
+    // Display if required
+    if (ratio)
+    {
+        if (getWindowProperty(cam->name, WND_PROP_AUTOSIZE) == -1)
         {
-            if (!cam->rec)
-            {
-                cam->rec = new camviz_recorder();
-                char path[64];
-                strcpy(path, prefix);
-                strcat(path, "/");
-                strcat(path, cam->name);
-                strcat(path, ".avi");
-                cam->rec->w = VideoWriter(path, VideoWriter::fourcc('M','J','P','G'), 25, Size(fdata->width, fdata->height));
-                warnx("start recording to %s", path);
-            }
-            if (fdata->bpp == 1) cvtColor(cvframe, cvframe, COLOR_GRAY2BGR);
-            try {
-                cam->rec->w.write(cvframe);
-            }
-            catch (Exception& e) {
-                warnx("unable to write frame: %s", e.what());
-            }
+            namedWindow(cam->name, WINDOW_NORMAL);
+            resizeWindow(cam->name, round(fdata->width / ratio), round(fdata->height / ratio));
+        }
+        imshow(cam->name, cvframe);
+        waitKey(1);
+    }
+
+    // Record if required
+    if (strcmp(prefix, "\0"))
+    {
+        if (!cam->rec)
+        {
+            cam->rec = new camviz_recorder();
+            char path[64];
+            strcpy(path, prefix);
+            strcat(path, "/");
+            strcat(path, cam->name);
+            strcat(path, ".avi");
+            cam->rec->w = VideoWriter(path, VideoWriter::fourcc('M','J','P','G'), 25, Size(fdata->width, fdata->height));
+            warnx("start recording to %s", path);
+        }
+        if (fdata->bpp == 1) cvtColor(cvframe, cvframe, COLOR_GRAY2BGR);
+        try {
+            cam->rec->w.write(cvframe);
+        }
+        catch (Exception& e) {
+            warnx("unable to write frame: %s", e.what());
         }
     }
     return camviz_pause_main;
+}
+
+/** Codel camera_stop of activity add_camera.
+ *
+ * Triggered by camviz_stop.
+ * Yields to camviz_ether.
+ * Throws camviz_e_sys.
+ */
+genom_event
+camera_stop(uint16_t i, sequence_camviz_camera_s *cameras,
+            const genom_context self)
+{
+    destroyWindow(cameras->_buffer[i].name);
+    if (cameras->_buffer[i].rec)
+        cameras->_buffer[i].rec->w.release();
+    cameras->_buffer[i].rec = NULL;
+
+    warnx("stopped monitoring camera %s", cameras->_buffer[i].name);
+
+    strcpy(cameras->_buffer[i].name, "\0");
+    cameras->_length--;
+
+    return camviz_ether;
 }

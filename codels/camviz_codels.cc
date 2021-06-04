@@ -44,39 +44,6 @@ display_validate(float ratio, const genom_context self)
 }
 
 
-/* --- Function add_camera ---------------------------------------------- */
-
-/** Codel camera_start of function add_camera.
- *
- * Returns genom_ok.
- */
-genom_event
-camera_start(const char port_name[64],
-             sequence_camviz_camera_s *cameras,
-             const genom_context self)
-{
-    // Add new camera in port list
-    uint8_t i;
-    for(i=0; i<cameras->_length; i++)
-        if (!strcmp(cameras->_buffer[i].name, port_name))
-            return camviz_e_sys_error("camera already monitored", self);
-
-    if (i >= cameras->_maximum)
-        if (genom_sequence_reserve(cameras, i + 1))
-            return camviz_e_sys_error("add_camera failed", self);
-    (cameras->_length)++;
-    strcpy(cameras->_buffer[i].name, port_name);
-
-    // Init camera fields
-    if (genom_sequence_reserve(&cameras->_buffer[i].pixel_ports, 0))
-        return camviz_e_sys_error("cannot initialize sequence", self);
-    cameras->_buffer[i].pixel_ports._length = 0;
-
-    warnx("monitoring camera %s", port_name);
-    return genom_ok;
-}
-
-
 /* --- Function stop ---------------------------------------------------- */
 
 /** Codel stop of function stop.
@@ -84,23 +51,10 @@ camera_start(const char port_name[64],
  * Returns genom_ok.
  */
 genom_event
-stop(sequence_camviz_camera_s *cameras, char prefix[64], float *ratio,
-     const genom_context self)
+stop(char prefix[64], float *ratio, const genom_context self)
 {
-    ratio = 0;
+    *ratio = 0;
     strcpy(prefix, "\0");
-
-    for (uint8_t i=0; i< cameras->_length; i++)
-    {
-        destroyWindow(cameras->_buffer[i].name);
-        cameras->_buffer[i].rec->w.release();
-        cameras->_buffer[i].rec = NULL;
-        strcpy(cameras->_buffer[i].name, "\0");
-    }
-
-    if (genom_sequence_reserve(cameras, 0))
-        return camviz_e_sys_error("cannot reinitialize sequence", self);
-    cameras->_length = 0;
 
     return genom_ok;
 }

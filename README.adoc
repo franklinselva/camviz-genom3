@@ -157,7 +157,7 @@ Toggle display of the circular FOV in the image frame.
 '''
 
 [[add_camera]]
-=== add_camera (function)
+=== add_camera (activity)
 
 [role="small", width="50%", float="right", cols="1"]
 |===

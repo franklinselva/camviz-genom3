@@ -58,8 +58,8 @@ component camviz {
     ids {
         sequence<camera_s> cameras;
 
-        float ratio;    // rescaling ratio, 0 is no display
-        string<64> prefix;  // recording file prefix, "" is no record
+        float ratio;        // rescaling ratio, 0 is no display
+        string<64> prefix;  // recording file prefix, '\0' is no record
     };
 
     /* ---- Display task -------------------------------------------------- */
@@ -68,15 +68,21 @@ component camviz {
         throw e_sys;
 
         codel<start> viz_start(out ::ids)
-            yield main;
-        codel<main> viz_main(in prefix, in ratio, in frame, in pixel, inout cameras)
-            yield pause::main;
+            yield ether;
     };
 
     /* ---- Services ------------------------------------------------------ */
-    function add_camera(in string<64> port_name = : "Frame input subport") {
+    activity add_camera(in string<64> port_name = : "Frame input subport") {
         doc "Starts the monitoring of a given camera frame stream.";
-        codel camera_start(in port_name, out cameras);
+        task main;
+        local unsigned short i;
+
+        codel<start> camera_start(in port_name, out cameras, out i)
+            yield main;
+        codel<main> camera_main(in i, in prefix, in ratio, in frame, in pixel, inout cameras)
+            yield pause::main;
+        codel<stop> camera_stop(in i, out cameras)
+            yield ether;
     };
 
     attribute show(in ratio = 1 : "Ratio of image display") {
@@ -92,6 +98,6 @@ component camviz {
     function stop() {
         doc "Stops current running monitoring activities";
         interrupt all;
-        codel stop(out cameras, out prefix, out ratio);
+        codel stop(out prefix, out ratio);
     };
 };
