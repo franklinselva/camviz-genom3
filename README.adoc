@@ -48,7 +48,7 @@ endif::[]
 
 
 [[frame]]
-=== frame (in)
+=== frame (multiple in)
 
 
 [role="small", width="50%", float="right", cols="1"]
@@ -156,54 +156,41 @@ Toggle display of the circular FOV in the image frame.
 
 '''
 
-[[disp_start]]
-=== disp_start (function)
+[[add_camera]]
+=== add_camera (function)
 
 [role="small", width="50%", float="right", cols="1"]
 |===
 a|.Inputs
 [disc]
- * `float` `disp_ratio` (default `"1"`) Scale ratio for display
+ * `string<64>` `port_name` Frame input subport
 
- * `string<64>` `window` (default `"camviz-genom3"`) Name of display window
+a|.Throws
+[disc]
+ * `exception ::camviz::e_sys`
+ ** `short` `code`
+ ** `string<64>` `what`
 
+a|.Context
+[disc]
+  * In task `<<main>>`
+  (frequency 25.0 _Hz_)
+  * Reads port `<<frame>>`
+  * Reads port `<<pixel>>`
 |===
 
-'''
-
-[[disp_stop]]
-=== disp_stop (function)
-
+Starts the monitoring of a given camera frame stream.
 
 '''
 
-[[rec_start]]
-=== rec_start (function)
+[[show]]
+=== show (attribute)
 
 [role="small", width="50%", float="right", cols="1"]
 |===
 a|.Inputs
 [disc]
- * `string<128>` `path` (default `"/tmp/camviz.avi"`) Video files path
-
-|===
-
-'''
-
-[[rec_stop]]
-=== rec_stop (function)
-
-
-'''
-
-[[add_pixel_display]]
-=== add_pixel_display (function)
-
-[role="small", width="50%", float="right", cols="1"]
-|===
-a|.Inputs
-[disc]
- * `string<64>` `port_name` Name of the pixel input port
+ * `float` `ratio` (default `"1"`) Ratio of image display
 
 a|.Throws
 [disc]
@@ -213,7 +200,39 @@ a|.Throws
 
 |===
 
-Add a subport to the pixels subport, in order to display it in the frame.
+Set display ratio. Set to 0 to disable display.
+
+'''
+
+[[record]]
+=== record (attribute)
+
+[role="small", width="50%", float="right", cols="1"]
+|===
+a|.Inputs
+[disc]
+ * `string<64>` `prefix` (default `"~/"`) Prefix of recording files
+
+|===
+
+Set recording prefix ratio. Set to empty to disable.
+
+'''
+
+[[stop]]
+=== stop (function)
+
+[role="small", width="50%", float="right", cols="1"]
+|===
+a|.Context
+[disc]
+  * Interrupts `<<add_camera>>`
+  * Interrupts `<<show>>`
+  * Interrupts `<<record>>`
+  * Interrupts `<<stop>>`
+|===
+
+Stops current running monitoring activities
 
 '''
 

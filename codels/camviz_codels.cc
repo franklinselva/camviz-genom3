@@ -28,106 +28,79 @@
 
 #include "codels.hpp"
 
-/* --- Function disp_start ---------------------------------------------- */
+/* --- Attribute show --------------------------------------------------- */
 
-/** Codel display_start of function disp_start.
- *
- * Returns genom_ok.
- */
-genom_event
-display_start(float disp_ratio, const camviz_ids_img_size *size,
-              const char window[64], char win[64], float *ratio,
-              const genom_context self)
-{
-    strcpy(win, window);
-    *ratio = disp_ratio;
-
-    warnx("start displaying");
-    return genom_ok;
-}
-
-
-/* --- Function disp_stop ----------------------------------------------- */
-
-/** Codel display_stop of function disp_stop.
- *
- * Returns genom_ok.
- */
-genom_event
-display_stop(const char win[64], float *ratio,
-             const genom_context self)
-{
-    destroyWindow(win);
-    ratio = 0;
-
-    warnx("stop displaying");
-    return genom_ok;
-}
-
-
-/* --- Function rec_start ----------------------------------------------- */
-
-/** Codel record_start of function rec_start.
- *
- * Returns genom_ok.
- */
-genom_event
-record_start(const char path[128], const camviz_ids_img_size *size,
-             camviz_recorder **rec, const genom_context self)
-{
-    if (size->w == 0 || size->h == 0)
-        return camviz_e_sys_error("no frame to record yet", self);
-
-    (*rec)->w = VideoWriter(path, VideoWriter::fourcc('M','J','P','G'), 59, Size(size->w,size->h));
-    (*rec)->on = true;
-
-    warnx("start recording to %s", path);
-    return genom_ok;
-}
-
-
-/* --- Function rec_stop ------------------------------------------------ */
-
-/** Codel record_stop of function rec_stop.
- *
- * Returns genom_ok.
- */
-genom_event
-record_stop(camviz_recorder **rec, const genom_context self)
-{
-    (*rec)->w.release();
-    (*rec)->on = false;
-
-    warnx("stop recording");
-    return genom_ok;
-}
-
-
-/* --- Function add_pixel_display --------------------------------------- */
-
-/** Codel add_pixel_display of function add_pixel_display.
+/** Validation codel display_validate of attribute show.
  *
  * Returns genom_ok.
  * Throws camviz_e_sys.
  */
 genom_event
-add_pixel_display(const char port_name[64],
-                  sequence_camviz_port_info *pixel_ports,
-                  const genom_context self)
+display_validate(float ratio, const genom_context self)
 {
-    // Add new pixel in port list
-    uint16_t i;
-    for(i=0; i<pixel_ports->_length; i++)
-        if (!strcmp(pixel_ports->_buffer[i], port_name))
-            return camviz_e_sys_error("pixel already in display", self);
+    if (ratio < 0)
+        return camviz_e_sys_error("invalid ratio", self);
+    return genom_ok;
+}
 
-    if (i >= pixel_ports->_maximum)
-        if (genom_sequence_reserve(pixel_ports, i + 1))
-            return camviz_e_sys_error("add_pixel impossible", self);
-    (pixel_ports->_length)++;
-    strcpy(pixel_ports->_buffer[i], port_name);
 
-    warnx("display new pixel: %s", port_name);
+/* --- Function add_camera ---------------------------------------------- */
+
+/** Codel camera_start of function add_camera.
+ *
+ * Returns genom_ok.
+ */
+genom_event
+camera_start(const char port_name[64],
+             sequence_camviz_camera_s *cameras,
+             const genom_context self)
+{
+    // Add new camera in port list
+    uint8_t i;
+    for(i=0; i<cameras->_length; i++)
+        if (!strcmp(cameras->_buffer[i].name, port_name))
+            return camviz_e_sys_error("camera already monitored", self);
+
+    if (i >= cameras->_maximum)
+        if (genom_sequence_reserve(cameras, i + 1))
+            return camviz_e_sys_error("add_camera failed", self);
+    (cameras->_length)++;
+    strcpy(cameras->_buffer[i].name, port_name);
+
+    // Init camera fields
+    if (genom_sequence_reserve(&cameras->_buffer[i].pixel_ports, 0))
+        return camviz_e_sys_error("cannot initialize sequence", self);
+    cameras->_buffer[i].pixel_ports._length = 0;
+
+    warnx("monitoring camera %s", port_name);
+    return genom_ok;
+}
+
+
+/* --- Function stop ---------------------------------------------------- */
+
+/** Codel stop of function stop.
+ *
+ * Returns genom_ok.
+ */
+genom_event
+stop(sequence_camviz_camera_s *cameras, char prefix[64], float *ratio,
+     const genom_context self)
+{
+    ratio = 0;
+    strcpy(prefix, "\0");
+
+    for (uint8_t i=0; i< cameras->_length; i++)
+    {
+        destroyWindow(cameras->_buffer[i].name);
+        cameras->_buffer[i].rec->w.release();
+        cameras->_buffer[i].rec = NULL;
+        strcpy(cameras->_buffer[i].name, "\0");
+    }
+
+    if (genom_sequence_reserve(cameras, 0))
+        return camviz_e_sys_error("cannot reinitialize sequence", self);
+    cameras->_length = 0;
 
     return genom_ok;
 }

@@ -36,39 +36,30 @@ component camviz {
     require         "genom3 >= 2.99.26";
     codels-require  "opencv";
 
-    /* ---- Interfaces ---------------------------------------------------- */
-    uses or_camera;
-
     /* ---- Exceptions ---------------------------------------------------- */
     exception e_sys { short code; string<64> what; };
 
     /* ---- Ports --------------------------------------------------------- */
-    // port in    or::sensor::frame   frame;
+    port multiple in    or::sensor::frame   frame;
     port multiple in    or::sensor::pixel   pixel;
-    /* interfaces ports:
-     *  port in   or::sensor::frame         frame;
-     *  port in   or::sensor::intrinsics    intrinsics; // unused
-     *  port in   or::sensor::extrinsics    extrinsics; // unused
-     */
 
     /* ---- Types --------------------------------------------------------- */
     native recorder;
+
     typedef string<64> port_info;
+
+    struct camera_s {
+        port_info           name;
+        recorder            rec;
+        sequence<port_info> pixel_ports;
+    };
 
     /* ---- IDS ----------------------------------------------------------- */
     ids {
-        struct img_size {
-            unsigned short w;
-            unsigned short h;
-        } size;
+        sequence<camera_s> cameras;
 
-        float ratio;
-        recorder rec;
-        boolean fov;
-
-        string<64> win;
-
-        sequence<port_info>  pixel_ports;
+        float ratio;    // rescaling ratio, 0 is no display
+        string<64> prefix;  // recording file prefix, "" is no record
     };
 
     /* ---- Display task -------------------------------------------------- */
@@ -77,43 +68,30 @@ component camviz {
         throw e_sys;
 
         codel<start> viz_start(out ::ids)
-            yield sleep;
-
-        codel<sleep> viz_sleep(in frame, out size)
-            yield pause::sleep, main;
-
-        codel<main> viz_main(in pixel_ports, in ratio, in fov, in frame, in pixel, in win, inout rec)
+            yield main;
+        codel<main> viz_main(in prefix, in ratio, in frame, in pixel, inout cameras)
             yield pause::main;
-
-        codel<stop> viz_stop(in win, out rec, out ratio)
-            yield ether;
     };
 
     /* ---- Services ------------------------------------------------------ */
-    attribute show_fov(in fov) {
-        doc "Toggle display of the circular FOV in the image frame.";
+    function add_camera(in string<64> port_name = : "Frame input subport") {
+        doc "Starts the monitoring of a given camera frame stream.";
+        codel camera_start(in port_name, out cameras);
     };
 
-    function disp_start(in float disp_ratio = 1: "Scale ratio for display",
-                        in string<64> window = "camviz-genom3": "Name of display window") {
-        codel display_start(in disp_ratio, in size, in window, out win, out ratio);
-    };
-
-    function disp_stop() {
-        codel display_stop(in win, out ratio);
-    };
-
-    function rec_start(in string<128> path = "/tmp/camviz.avi": "Video files path") {
-        codel record_start(in path, in size, out rec);
-    };
-
-    function rec_stop() {
-        codel record_stop(out rec);
-    };
-
-    function add_pixel_display(in string<64> port_name = : "Name of the pixel input port") {
-        doc "Add a subport to the pixels subport, in order to display it in the frame.";
+    attribute show(in ratio = 1 : "Ratio of image display") {
+        doc "Set display ratio. Set to 0 to disable display.";
         throw e_sys;
-        codel add_pixel_display(in port_name, out pixel_ports);
+        validate display_validate(local in ratio);
+    };
+
+    attribute record(in prefix = "~/" : "Prefix of recording files") {
+        doc "Set recording prefix ratio. Set to empty to disable.";
+    };
+
+    function stop() {
+        doc "Stops current running monitoring activities";
+        interrupt all;
+        codel stop(out cameras, out prefix, out ratio);
     };
 };

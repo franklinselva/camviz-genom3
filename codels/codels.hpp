@@ -35,7 +35,6 @@ using namespace cv;
 
 struct camviz_recorder {
     VideoWriter w;
-    bool on;
 };
 
 static inline genom_event
