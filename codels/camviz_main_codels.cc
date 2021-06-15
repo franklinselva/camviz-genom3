@@ -98,7 +98,12 @@ camera_main(uint16_t cam_id, const char prefix[64], float ratio,
             const genom_context self)
 {
     // Sleep if no action is required
-    if (!strcmp(prefix, "\0") && !ratio) return camviz_pause_main;
+    if (!strcmp(prefix, "\0") && !ratio)
+    {
+        destroyAllWindows();
+        return camviz_pause_main;
+    }
+
     camviz_camera_s* cam = &cameras->_buffer[cam_id];
     if (frame->read(cam->name, self) != genom_ok || !frame->data(cam->name, self)) return camviz_pause_main;
 
@@ -134,7 +139,7 @@ camera_main(uint16_t cam_id, const char prefix[64], float ratio,
     // Display if required
     if (ratio)
     {
-        if (getWindowProperty(cam->name, WND_PROP_AUTOSIZE) == -1)
+        if (getWindowProperty(cam->name, WND_PROP_VISIBLE) == -1)
         {
             namedWindow(cam->name, WINDOW_NORMAL);
             resizeWindow(cam->name, round(fdata->width / ratio), round(fdata->height / ratio));

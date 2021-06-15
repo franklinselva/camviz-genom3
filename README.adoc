@@ -215,7 +215,15 @@ a|.Inputs
 
 |===
 
-Set recording prefix ratio. Set to empty to disable.
+Set recording prefix ratio.
+
+'''
+
+[[stop_rec]]
+=== stop_rec (function)
+
+
+Stops the recording of videos.
 
 '''
 
@@ -252,6 +260,7 @@ a|.Context
   * Interrupts `<<add_camera>>`
   * Interrupts `<<show>>`
   * Interrupts `<<record>>`
+  * Interrupts `<<stop_rec>>`
   * Interrupts `<<add_pixel_display>>`
   * Interrupts `<<stop>>`
 |===

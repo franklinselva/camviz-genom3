@@ -92,7 +92,12 @@ component camviz {
     };
 
     attribute record(in prefix = "~/" : "Prefix of recording files") {
-        doc "Set recording prefix ratio. Set to empty to disable.";
+        doc "Set recording prefix ratio.";
+    };
+
+    function stop_rec() {
+        doc "Stops the recording of videos.";
+        codel stop_rec(out prefix, out cameras);
     };
 
     function add_pixel_display(in string<64> pixel_name = : "Name of the pixel input port",

@@ -44,6 +44,28 @@ display_validate(float ratio, const genom_context self)
 }
 
 
+/* --- Function stop_rec ------------------------------------------------ */
+
+/** Codel stop_rec of function stop_rec.
+ *
+ * Returns genom_ok.
+ */
+genom_event
+stop_rec(char prefix[64], sequence_camviz_camera_s *cameras,
+         const genom_context self)
+{
+    strcpy(prefix, "\0");
+
+    for (uint16_t cam_id=0; cam_id<cameras->_length; cam_id++)
+    {
+        if (cameras->_buffer[cam_id].rec)
+            cameras->_buffer[cam_id].rec->w.release();
+        cameras->_buffer[cam_id].rec = NULL;
+    }
+    return genom_ok;
+}
+
+
 /* --- Function add_pixel_display --------------------------------------- */
 
 /** Codel add_pixel of function add_pixel_display.
