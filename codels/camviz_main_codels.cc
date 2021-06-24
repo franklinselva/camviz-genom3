@@ -124,6 +124,7 @@ camera_main(uint16_t cam_id, const char prefix[64], float ratio,
         Mat::AUTO_STEP
     );
 
+    if (fdata->bpp == 1) cvtColor(cvframe, cvframe, COLOR_GRAY2BGR);
     if (fdata->bpp == 3) cvtColor(cvframe, cvframe, COLOR_RGB2BGR);  // opencv de ses morts
 
     // Go through pixel ports and display, if any
@@ -133,7 +134,7 @@ camera_main(uint16_t cam_id, const char prefix[64], float ratio,
         {
             uint16_t x = pixel->data(cam->pixel_ports._buffer[i], self)->x;
             uint16_t y = pixel->data(cam->pixel_ports._buffer[i], self)->y;
-            circle(cvframe, Point(x,y), 2, fdata->bpp < 3 ? Scalar(0) : Scalar(0,0,255), 2);
+            circle(cvframe, Point(x,y), 2, Scalar(0,0,255), 2);
         }
 
     // Display if required
@@ -162,7 +163,6 @@ camera_main(uint16_t cam_id, const char prefix[64], float ratio,
             cam->rec->w = VideoWriter(path, VideoWriter::fourcc('M','J','P','G'), 25, Size(fdata->width, fdata->height));
             warnx("start recording to %s", path);
         }
-        if (fdata->bpp == 1) cvtColor(cvframe, cvframe, COLOR_GRAY2BGR);
         try {
             cam->rec->w.write(cvframe);
         }
