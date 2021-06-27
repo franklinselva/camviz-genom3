@@ -130,10 +130,11 @@ camera_main(uint16_t cam_id, const char prefix[64], float ratio,
     // Go through pixel ports and display, if any
     for (uint16_t i=0; i<cam->pixel_ports._length; i++)
         if (pixel->read(cam->pixel_ports._buffer[i], self) == genom_ok &&
-            pixel->data(cam->pixel_ports._buffer[i], self))
+            pixel->data(cam->pixel_ports._buffer[i], self) &&
+            pixel->data(cam->pixel_ports._buffer[i], self)->pix._present)
         {
-            uint16_t x = pixel->data(cam->pixel_ports._buffer[i], self)->x;
-            uint16_t y = pixel->data(cam->pixel_ports._buffer[i], self)->y;
+            uint16_t x = pixel->data(cam->pixel_ports._buffer[i], self)->pix._value.x;
+            uint16_t y = pixel->data(cam->pixel_ports._buffer[i], self)->pix._value.y;
             circle(cvframe, Point(x,y), 2, Scalar(0,0,255), 2);
         }
 
