@@ -59,6 +59,7 @@ a|.Data structure
  ** `struct ::or::time::ts` `ts`
  *** `long` `sec`
  *** `long` `nsec`
+ ** `boolean` `compressed`
  ** `unsigned short` `height`
  ** `unsigned short` `width`
  ** `unsigned short` `bpp`
@@ -132,8 +133,9 @@ a|.Data structure
  ** `struct ::or::time::ts` `ts`
  *** `long` `sec`
  *** `long` `nsec`
- ** `unsigned short` `x`
- ** `unsigned short` `y`
+ ** `optional< struct ::or::sensor::pix_s >` `pix`
+ *** `unsigned short` `x`
+ *** `unsigned short` `y`
 
 |===
 
@@ -228,7 +230,7 @@ Stops the recording of videos.
 '''
 
 [[add_pixel_display]]
-=== add_pixel_display (function)
+=== add_pixel_display (activity)
 
 [role="small", width="50%", float="right", cols="1"]
 |===
@@ -244,6 +246,10 @@ a|.Throws
  ** `short` `code`
  ** `string<64>` `what`
 
+a|.Context
+[disc]
+  * In task `<<main>>`
+  (frequency 25.0 _Hz_)
 |===
 
 Add a subport to the pixels subport, in order to display it in the frame.

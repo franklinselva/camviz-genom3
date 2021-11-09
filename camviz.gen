@@ -100,11 +100,13 @@ component camviz {
         codel stop_rec(out prefix, out cameras);
     };
 
-    function add_pixel_display(in string<64> pixel_name = : "Name of the pixel input port",
+    activity add_pixel_display(in string<64> pixel_name = : "Name of the pixel input port",
                                in string<64> cam_name = : "Name of camera for the display") {
         doc "Add a subport to the pixels subport, in order to display it in the frame.";
+        task main;
         throw e_sys;
-        codel add_pixel(in pixel_name, in cam_name, inout cameras);
+        codel<start> add_pixel(in pixel_name, in cam_name, inout cameras)
+            yield ether;
     };
 
     function stop() {
