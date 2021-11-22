@@ -91,7 +91,7 @@ component camviz {
         validate display_validate(local in ratio);
     };
 
-    attribute record(in prefix = "~/" : "Prefix of recording files") {
+    attribute record(in prefix = : "Prefix of recording files") {
         doc "Set recording prefix ratio.";
     };
 
