@@ -167,7 +167,7 @@ camera_main(uint16_t cam_id, const char prefix[64], float ratio,
         if (!cam->rec)
         {
             cam->rec = new camviz_recorder();
-            char path[64];
+            char path[128];
             strcpy(path, prefix);
             strcat(path, "/");
             strcat(path, cam->name);
