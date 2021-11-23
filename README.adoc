@@ -213,7 +213,7 @@ Set display ratio. Set to 0 to disable display.
 |===
 a|.Inputs
 [disc]
- * `string<64>` `prefix` (default `"~/"`) Prefix of recording files
+ * `string<64>` `prefix` Prefix of recording files
 
 |===
 
@@ -256,6 +256,19 @@ Add a subport to the pixels subport, in order to display it in the frame.
 
 '''
 
+[[set_pix_size]]
+=== set_pix_size (attribute)
+
+[role="small", width="50%", float="right", cols="1"]
+|===
+a|.Inputs
+[disc]
+ * `unsigned short` `pix_size` (default `"3"`) (Positive) size of displayed pixel (radius of dot).
+
+|===
+
+'''
+
 [[stop]]
 === stop (function)
 
@@ -268,6 +281,7 @@ a|.Context
   * Interrupts `<<record>>`
   * Interrupts `<<stop_rec>>`
   * Interrupts `<<add_pixel_display>>`
+  * Interrupts `<<set_pix_size>>`
   * Interrupts `<<stop>>`
 |===
 

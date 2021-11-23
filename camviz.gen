@@ -60,6 +60,7 @@ component camviz {
 
         float ratio;        // rescaling ratio, 0 is no display
         string<64> prefix;  // recording file prefix, '\0' is no record
+        unsigned short pix_size;    // size of pixels to display
     };
 
     /* ---- Display task -------------------------------------------------- */
@@ -79,7 +80,7 @@ component camviz {
 
         codel<start> camera_start(in port_name, out cameras, out cam_id)
             yield main;
-        codel<main> camera_main(in cam_id, in prefix, in ratio, in frame, in pixel, inout cameras)
+        codel<main> camera_main(in cam_id, in prefix, in ratio, in frame, in pixel, inout cameras, in pix_size)
             yield pause::main;
         codel<stop> camera_stop(in cam_id, out cameras)
             yield ether;
@@ -108,6 +109,8 @@ component camviz {
         codel<start> add_pixel(in pixel_name, in cam_name, inout cameras)
             yield ether;
     };
+
+    attribute set_pix_size(in pix_size = 3 : "(Positive) size of displayed pixel (radius of dot).");
 
     function stop() {
         doc "Stops current running monitoring activities";

@@ -42,6 +42,7 @@ genom_event
 viz_start(camviz_ids *ids, const genom_context self)
 {
     ids->ratio = 0;
+    ids->pix_size = 3;
     strcpy(ids->prefix, "\0");
 
     if (genom_sequence_reserve(&ids->cameras, 0))
@@ -94,7 +95,7 @@ camera_start(const char port_name[64],
 genom_event
 camera_main(uint16_t cam_id, const char prefix[64], float ratio,
             const camviz_frame *frame, const camviz_pixel *pixel,
-            sequence_camviz_camera_s *cameras,
+            sequence_camviz_camera_s *cameras, uint16_t pix_size,
             const genom_context self)
 {
     // Sleep if no action is required
@@ -146,7 +147,7 @@ camera_main(uint16_t cam_id, const char prefix[64], float ratio,
         {
             uint16_t x = pixel->data(cam->pixel_ports._buffer[i], self)->pix._value.x;
             uint16_t y = pixel->data(cam->pixel_ports._buffer[i], self)->pix._value.y;
-            circle(cvframe, Point(x,y), 2, Scalar(0,0,255), 2);
+            circle(cvframe, Point(x,y), pix_size, Scalar(0,0,255), -1);
         }
 
     // Display if required
