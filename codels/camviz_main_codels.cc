@@ -79,9 +79,9 @@ camera_start(const char port_name[64],
     strcpy(cameras->_buffer[*cam_id].name, port_name);
 
     // Init camera fields
-    if (genom_sequence_reserve(&cameras->_buffer[*cam_id].pixel_ports, 0))
+    if (genom_sequence_reserve(&cameras->_buffer[*cam_id].pixels, 0))
         return camviz_e_sys_error("cannot initialize sequence", self);
-    cameras->_buffer[*cam_id].pixel_ports._length = 0;
+    cameras->_buffer[*cam_id].pixels._length = 0;
 
     warnx("monitoring camera %s", port_name);
     return camviz_main;
@@ -141,14 +141,15 @@ camera_main(uint16_t cam_id, const char prefix[64], float ratio,
     if (fdata->bpp == 3) cvtColor(cvframe, cvframe, COLOR_RGB2BGR);  // opencv de ses morts
 
     // Go through pixel ports and display, if any
-    for (uint16_t i=0; i<cam->pixel_ports._length; i++)
-        if (pixel->read(cam->pixel_ports._buffer[i], self) == genom_ok &&
-            pixel->data(cam->pixel_ports._buffer[i], self) &&
-            pixel->data(cam->pixel_ports._buffer[i], self)->pix._present)
+    for (uint16_t i=0; i<cam->pixels._length; i++)
+        if (pixel->read(cam->pixels._buffer[i].name, self) == genom_ok &&
+            pixel->data(cam->pixels._buffer[i].name, self) &&
+            pixel->data(cam->pixels._buffer[i].name, self)->pix._present)
         {
-            uint16_t x = pixel->data(cam->pixel_ports._buffer[i], self)->pix._value.x;
-            uint16_t y = pixel->data(cam->pixel_ports._buffer[i], self)->pix._value.y;
-            circle(cvframe, Point(x,y), pix_size, Scalar(0,0,255), -1);
+            uint16_t x = pixel->data(cam->pixels._buffer[i].name, self)->pix._value.x;
+            uint16_t y = pixel->data(cam->pixels._buffer[i].name, self)->pix._value.y;
+            Scalar color (cam->pixels._buffer[i].color._buffer[2], cam->pixels._buffer[i].color._buffer[1], cam->pixels._buffer[i].color._buffer[0]);
+            circle(cvframe, Point(x,y), pix_size, color, -1);
         }
 
     // Rotate if required
@@ -229,6 +230,7 @@ camera_stop(uint16_t cam_id, sequence_camviz_camera_s *cameras,
  */
 genom_event
 add_pixel(const char pixel_name[64], const char cam_name[64],
+          const sequence3_octet *color,
           sequence_camviz_camera_s *cameras, const genom_context self)
 {
     // Check that requested camera exists
@@ -253,17 +255,18 @@ add_pixel(const char pixel_name[64], const char cam_name[64],
 
     // Check that pixel is not already displayed for the camera
     uint16_t pix_id;
-    for(pix_id=0; pix_id<cam->pixel_ports._length; pix_id++)
-        if (!strcmp(cam->pixel_ports._buffer[pix_id], pixel_name))
+    for(pix_id=0; pix_id<cam->pixels._length; pix_id++)
+        if (!strcmp(cam->pixels._buffer[pix_id].name, pixel_name))
             return camviz_e_sys_error("pixel already in display", self);
     // Allocate sequence memory if need be
-    if (pix_id >= cam->pixel_ports._maximum)
-        if (genom_sequence_reserve(&cam->pixel_ports, pix_id + 1))
+    if (pix_id >= cam->pixels._maximum)
+        if (genom_sequence_reserve(&cam->pixels, pix_id + 1))
             return camviz_e_sys_error("add_pixel impossible", self);
-    (cam->pixel_ports._length)++;
+    (cam->pixels._length)++;
 
     // Add pixel to list
-    strcpy(cam->pixel_ports._buffer[pix_id], pixel_name);
+    strcpy(cam->pixels._buffer[pix_id].name, pixel_name);
+    cam->pixels._buffer[pix_id].color = *color;
 
     warnx("display new pixel for camera %s: %s", cam_name, pixel_name);
 

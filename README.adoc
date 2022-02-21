@@ -69,58 +69,6 @@ a|.Data structure
 
 '''
 
-[[intrinsics]]
-=== intrinsics (in)
-
-
-[role="small", width="50%", float="right", cols="1"]
-|===
-a|.Data structure
-[disc]
- * `struct ::or::sensor::intrinsics` `intrinsics`
- ** `struct ::or::sensor::calibration` `calib`
- *** `float` `fx`
- *** `float` `fy`
- *** `float` `cx`
- *** `float` `cy`
- *** `float` `gamma`
- ** `struct ::or::sensor::distortion` `disto`
- *** `float` `k1`
- *** `float` `k2`
- *** `float` `k3`
- *** `float` `p1`
- *** `float` `p2`
-
-|===
-
-'''
-
-[[extrinsics]]
-=== extrinsics (in)
-
-
-[role="small", width="50%", float="right", cols="1"]
-|===
-a|.Data structure
-[disc]
- * `struct ::or::sensor::extrinsics` `extrinsics`
- ** `struct ::or::sensor::translation` `trans`
- *** `float` `tx`
- *** `float` `ty`
- *** `float` `tz`
- ** `struct ::or::sensor::rotation` `rot`
- *** `float` `roll`
- *** `float` `pitch`
- *** `float` `yaw`
- ** `struct ::or::sensor::translation` `trans`
- *** `float` `tx`
- *** `float` `ty`
- *** `float` `tz`
-
-|===
-
-'''
-
 [[pixel]]
 === pixel (multiple in)
 
@@ -142,21 +90,6 @@ a|.Data structure
 '''
 
 == Services
-
-[[show_fov]]
-=== show_fov (attribute)
-
-[role="small", width="50%", float="right", cols="1"]
-|===
-a|.Inputs
-[disc]
- * `boolean` `fov`
-
-|===
-
-Toggle display of the circular FOV in the image frame.
-
-'''
 
 [[add_camera]]
 === add_camera (activity)
@@ -240,6 +173,11 @@ a|.Inputs
 
  * `string<64>` `cam_name` Name of camera for the display
 
+ * `sequence< octet, 3 >` `color` Color of pixel to display (RGB)
+ ** `octet` `[0]` (default `"255"`)
+ ** `octet` `[1]` (default `"0"`)
+ ** `octet` `[2]` (default `"0"`)
+
 a|.Throws
 [disc]
  * `exception ::camviz::e_sys`
@@ -256,6 +194,29 @@ Add a subport to the pixels subport, in order to display it in the frame.
 
 '''
 
+[[remove_pixel_display]]
+=== remove_pixel_display (function)
+
+[role="small", width="50%", float="right", cols="1"]
+|===
+a|.Inputs
+[disc]
+ * `string<64>` `pixel_name` Name of the pixel input port
+
+ * `string<64>` `cam_name` Name of camera for the display
+
+a|.Throws
+[disc]
+ * `exception ::camviz::e_sys`
+ ** `short` `code`
+ ** `string<64>` `what`
+
+|===
+
+Remove a pixel to the list of pixels to display in the frame.
+
+'''
+
 [[set_pix_size]]
 === set_pix_size (attribute)
 
@@ -263,7 +224,7 @@ Add a subport to the pixels subport, in order to display it in the frame.
 |===
 a|.Inputs
 [disc]
- * `unsigned short` `pix_size` (default `"3"`) (Positive) size of displayed pixel (radius of dot).
+ * `unsigned short` `pix_size` (default `"3"`) (Positive) size of displayed pixel (radius of dot)
 
 |===
 
@@ -276,7 +237,7 @@ a|.Inputs
 |===
 a|.Inputs
 [disc]
- * `unsigned short` `orientation` (default `"0"`) 0: normal; 1: 90° left; 2: 180°; 3: 90° right
+ * `unsigned short` `orientation` (default `"0"`) 0: 0°; 1: 90°; 2: 180°; 3: 270°
 
 a|.Throws
 [disc]
@@ -286,7 +247,7 @@ a|.Throws
 
 |===
 
-Set the rotation to apply to image before display.
+Set the rotation (clockwise) to apply to image before display.
 
 '''
 
@@ -302,6 +263,7 @@ a|.Context
   * Interrupts `<<record>>`
   * Interrupts `<<stop_rec>>`
   * Interrupts `<<add_pixel_display>>`
+  * Interrupts `<<remove_pixel_display>>`
   * Interrupts `<<set_pix_size>>`
   * Interrupts `<<set_orientation>>`
   * Interrupts `<<stop>>`
@@ -321,8 +283,6 @@ Stops current running monitoring activities
 a|.Context
 [disc]
   * Frequency 25.0 _Hz_
-* Reads port `<<frame>>`
-* Reads port `<<pixel>>`
 a|.Throws
 [disc]
  * `exception ::camviz::e_sys`

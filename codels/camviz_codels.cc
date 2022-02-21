@@ -85,6 +85,48 @@ stop_rec(char prefix[64], sequence_camviz_camera_s *cameras,
 }
 
 
+/* --- Function remove_pixel_display ------------------------------------ */
+
+/** Codel remove_pixel of function remove_pixel_display.
+ *
+ * Returns genom_ok.
+ * Throws camviz_e_sys.
+ */
+genom_event
+remove_pixel(const char pixel_name[64], const char cam_name[64],
+             sequence_camviz_camera_s *cameras,
+             const genom_context self)
+{
+    // Check that requested camera exists
+    uint16_t cam_id;
+    for (cam_id=0; cam_id<cameras->_length; cam_id++)
+        if (!strcmp(cameras->_buffer[cam_id].name, cam_name))
+            break;
+    if (cam_id == cameras->_length)
+        return camviz_e_sys_error("camera not found", self);
+
+    camviz_camera_s* cam = &cameras->_buffer[cam_id];
+
+    // Check that pixel is already displayed by this camera
+    uint16_t pix_id;
+    for(pix_id=0; pix_id<cam->pixels._length; pix_id++)
+        if (!strcmp(cam->pixels._buffer[pix_id].name, pixel_name))
+            break;
+    if (cam_id == cam->pixels._length)
+        return camviz_e_sys_error("pixel already in display", self);
+
+    // Remove pixel from list
+    for (uint16_t i=pix_id; i<cam->pixels._length-1; i++)
+        cam->pixels._buffer[pix_id] = cam->pixels._buffer[pix_id+1];
+
+    (cam->pixels._length)--;
+
+    warnx("remove pixel %s from camera %s", pixel_name, cam_name);
+
+    return genom_ok;
+}
+
+
 /* --- Function stop ---------------------------------------------------- */
 
 /** Codel stop of function stop.

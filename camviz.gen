@@ -48,20 +48,25 @@ component camviz {
 
     typedef string<64> port_info;
 
+    struct pixel_info_s {
+        port_info               name;
+        sequence<octet,3>       color;
+    };
+
     struct camera_s {
-        port_info           name;
-        recorder            rec;
-        sequence<port_info> pixel_ports;
+        port_info               name;
+        recorder                rec;
+        sequence<pixel_info_s>  pixels;
     };
 
     /* ---- IDS ----------------------------------------------------------- */
     ids {
-        sequence<camera_s> cameras;
+        sequence<camera_s>  cameras;
 
-        float ratio;        // rescaling ratio, 0 is no display
+        float ratio;        // rescaling ratio, 0 is not showing
         string<64> prefix;  // recording file prefix, '\0' is no record
         unsigned short pix_size;    // size of pixels to display
-        unsigned short      orientation;
+        unsigned short orientation; // orientation of image to display
     };
 
     /* ---- Display task -------------------------------------------------- */
@@ -103,15 +108,23 @@ component camviz {
     };
 
     activity add_pixel_display(in string<64> pixel_name = : "Name of the pixel input port",
-                               in string<64> cam_name = : "Name of camera for the display") {
+                               in string<64> cam_name = : "Name of camera for the display",
+                               in sequence<octet,3> color = {255,0,0} : "Color of pixel to display (RGB)") {
         doc "Add a subport to the pixels subport, in order to display it in the frame.";
         task main;
         throw e_sys;
-        codel<start> add_pixel(in pixel_name, in cam_name, inout cameras)
+        codel<start> add_pixel(in pixel_name, in cam_name, in color, inout cameras)
             yield ether;
     };
 
-    attribute set_pix_size(in pix_size = 3 : "(Positive) size of displayed pixel (radius of dot).");
+    function remove_pixel_display(in string<64> pixel_name = : "Name of the pixel input port",
+                                 in string<64> cam_name = : "Name of camera for the display") {
+        doc "Remove a pixel to the list of pixels to display in the frame.";
+        throw e_sys;
+        codel remove_pixel(in pixel_name, in cam_name, inout cameras);
+    };
+
+    attribute set_pix_size(in pix_size = 3 : "(Positive) size of displayed pixel (radius of dot)");
 
     attribute set_orientation(in orientation = 0 : "0: 0°; 1: 90°; 2: 180°; 3: 270°") {
         doc "Set the rotation (clockwise) to apply to image before display.";
