@@ -44,6 +44,25 @@ display_validate(float ratio, const genom_context self)
 }
 
 
+/* --- Attribute set_orientation ---------------------------------------- */
+
+/** Validation codel set_orientation of attribute set_orientation.
+ *
+ * Returns genom_ok.
+ * Throws camviz_e_sys.
+ */
+genom_event
+set_orientation(uint16_t orientation, const genom_context self)
+{
+    if (orientation < 0 || orientation > 3) {
+        warnx("wrong output frame value (allowed: 0, 1, 2, 3)");
+        errno = EDOM;
+        return camviz_e_sys_error("wrong value", self);
+    }
+    return genom_ok;
+}
+
+
 /* --- Function stop_rec ------------------------------------------------ */
 
 /** Codel stop_rec of function stop_rec.

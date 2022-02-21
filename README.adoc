@@ -269,6 +269,27 @@ a|.Inputs
 
 '''
 
+[[set_orientation]]
+=== set_orientation (attribute)
+
+[role="small", width="50%", float="right", cols="1"]
+|===
+a|.Inputs
+[disc]
+ * `unsigned short` `orientation` (default `"0"`) 0: normal; 1: 90° left; 2: 180°; 3: 90° right
+
+a|.Throws
+[disc]
+ * `exception ::camviz::e_sys`
+ ** `short` `code`
+ ** `string<64>` `what`
+
+|===
+
+Set the rotation to apply to image before display.
+
+'''
+
 [[stop]]
 === stop (function)
 
@@ -282,6 +303,7 @@ a|.Context
   * Interrupts `<<stop_rec>>`
   * Interrupts `<<add_pixel_display>>`
   * Interrupts `<<set_pix_size>>`
+  * Interrupts `<<set_orientation>>`
   * Interrupts `<<stop>>`
 |===
 

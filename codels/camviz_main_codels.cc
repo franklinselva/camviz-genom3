@@ -42,6 +42,7 @@ genom_event
 viz_start(camviz_ids *ids, const genom_context self)
 {
     ids->ratio = 0;
+    ids->orientation = 0;
     ids->pix_size = 3;
     strcpy(ids->prefix, "\0");
 
@@ -96,7 +97,7 @@ genom_event
 camera_main(uint16_t cam_id, const char prefix[64], float ratio,
             const camviz_frame *frame, const camviz_pixel *pixel,
             sequence_camviz_camera_s *cameras, uint16_t pix_size,
-            const genom_context self)
+            uint16_t orientation, const genom_context self)
 {
     // Sleep if no action is required
     if (!strcmp(prefix, "\0") && !ratio)
@@ -149,6 +150,14 @@ camera_main(uint16_t cam_id, const char prefix[64], float ratio,
             uint16_t y = pixel->data(cam->pixel_ports._buffer[i], self)->pix._value.y;
             circle(cvframe, Point(x,y), pix_size, Scalar(0,0,255), -1);
         }
+
+    // Rotate if required
+    if (orientation == 1)
+        rotate(cvframe, cvframe, ROTATE_90_CLOCKWISE);
+    else if (orientation == 2)
+        rotate(cvframe, cvframe, ROTATE_180);
+    else if (orientation == 3)
+        rotate(cvframe, cvframe, ROTATE_90_COUNTERCLOCKWISE);
 
     // Display if required
     if (ratio)
