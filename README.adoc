@@ -231,12 +231,14 @@ a|.Inputs
 '''
 
 [[set_orientation]]
-=== set_orientation (attribute)
+=== set_orientation (function)
 
 [role="small", width="50%", float="right", cols="1"]
 |===
 a|.Inputs
 [disc]
+ * `string<64>` `cam_name` Name of camera for the orientation
+
  * `unsigned short` `orientation` (default `"0"`) 0: 0°; 1: 90°; 2: 180°; 3: 270°
 
 a|.Throws

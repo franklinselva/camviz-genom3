@@ -42,7 +42,6 @@ genom_event
 viz_start(camviz_ids *ids, const genom_context self)
 {
     ids->ratio = 0;
-    ids->orientation = 0;
     ids->pix_size = 3;
     strcpy(ids->prefix, "\0");
 
@@ -82,6 +81,7 @@ camera_start(const char port_name[64],
     if (genom_sequence_reserve(&cameras->_buffer[*cam_id].pixels, 0))
         return camviz_e_sys_error("cannot initialize sequence", self);
     cameras->_buffer[*cam_id].pixels._length = 0;
+    cameras->_buffer[*cam_id].orientation = 0;
 
     warnx("monitoring camera %s", port_name);
     return camviz_main;
@@ -97,7 +97,7 @@ genom_event
 camera_main(uint16_t cam_id, const char prefix[64], float ratio,
             const camviz_frame *frame, const camviz_pixel *pixel,
             sequence_camviz_camera_s *cameras, uint16_t pix_size,
-            uint16_t orientation, const genom_context self)
+            const genom_context self)
 {
     // Sleep if no action is required
     if (!strcmp(prefix, "\0") && !ratio)
@@ -153,11 +153,11 @@ camera_main(uint16_t cam_id, const char prefix[64], float ratio,
         }
 
     // Rotate if required
-    if (orientation == 1)
+    if (cam->orientation == 1)
         rotate(cvframe, cvframe, ROTATE_90_CLOCKWISE);
-    else if (orientation == 2)
+    else if (cam->orientation == 2)
         rotate(cvframe, cvframe, ROTATE_180);
-    else if (orientation == 3)
+    else if (cam->orientation == 3)
         rotate(cvframe, cvframe, ROTATE_90_COUNTERCLOCKWISE);
 
     // Display if required

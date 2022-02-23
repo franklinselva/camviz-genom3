@@ -27,6 +27,7 @@
 #include "camviz_c_types.h"
 
 #include "codels.hpp"
+#include <unistd.h>
 
 /* --- Attribute show --------------------------------------------------- */
 
@@ -40,25 +41,6 @@ display_validate(float ratio, const genom_context self)
 {
     if (ratio < 0)
         return camviz_e_sys_error("invalid ratio", self);
-    return genom_ok;
-}
-
-
-/* --- Attribute set_orientation ---------------------------------------- */
-
-/** Validation codel set_orientation of attribute set_orientation.
- *
- * Returns genom_ok.
- * Throws camviz_e_sys.
- */
-genom_event
-set_orientation(uint16_t orientation, const genom_context self)
-{
-    if (orientation < 0 || orientation > 3) {
-        warnx("wrong output frame value (allowed: 0, 1, 2, 3)");
-        errno = EDOM;
-        return camviz_e_sys_error("wrong value", self);
-    }
     return genom_ok;
 }
 
@@ -122,6 +104,51 @@ remove_pixel(const char pixel_name[64], const char cam_name[64],
     (cam->pixels._length)--;
 
     warnx("remove pixel %s from camera %s", pixel_name, cam_name);
+
+    return genom_ok;
+}
+
+
+/* --- Function set_orientation ----------------------------------------- */
+
+/** Codel set_orientation of function set_orientation.
+ *
+ * Returns genom_ok.
+ * Throws camviz_e_sys.
+ */
+genom_event
+set_orientation(const char cam_name[64], uint16_t orientation,
+                sequence_camviz_camera_s *cameras,
+                const genom_context self)
+{
+    // check orientation value
+    if (orientation < 0 || orientation > 3) {
+        warnx("wrong output frame value (allowed: 0, 1, 2, 3)");
+        errno = EDOM;
+        return camviz_e_sys_error("wrong value", self);
+    }
+
+    // Check that requested camera exists
+    bool fail = false;
+    uint16_t cam_id;
+    retry:
+    for (cam_id=0; cam_id<cameras->_length; cam_id++)
+        if (!strcmp(cameras->_buffer[cam_id].name, cam_name))
+            break;
+    if (cam_id == cameras->_length)
+    {
+        if (!fail)
+        {
+            fail = true;
+            usleep(1000); // sleep 1ms
+            goto retry;
+        }
+        else
+            return camviz_e_sys_error("camera not found", self);
+    }
+
+    // Change orientation
+    cameras->_buffer[cam_id].orientation = orientation;
 
     return genom_ok;
 }
