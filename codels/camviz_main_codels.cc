@@ -183,7 +183,7 @@ camera_main(uint16_t cam_id, const char prefix[64], float ratio,
             strcat(path, "/");
             strcat(path, cam->name);
             strcat(path, ".avi");
-            cam->rec->w = VideoWriter(path, VideoWriter::fourcc('M','J','P','G'), 25, Size(fdata->width, fdata->height));
+            cam->rec->w = VideoWriter(path, VideoWriter::fourcc('M','J','P','G'), 25, (cam->orientation == 0 || cam->orientation == 2) ? Size(fdata->width, fdata->height) : Size(fdata->height, fdata->width));
             warnx("start recording to %s", path);
         }
         try {
@@ -245,7 +245,7 @@ add_pixel(const char pixel_name[64], const char cam_name[64],
         if (!fail)
         {
             fail = true;
-            usleep(1000); // sleep 1ms
+            usleep(5000); // sleep 1ms
             goto retry;
         }
         else

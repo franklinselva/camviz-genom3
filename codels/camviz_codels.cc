@@ -140,7 +140,7 @@ set_orientation(const char cam_name[64], uint16_t orientation,
         if (!fail)
         {
             fail = true;
-            usleep(1000); // sleep 1ms
+            usleep(5000); // sleep 1ms
             goto retry;
         }
         else
