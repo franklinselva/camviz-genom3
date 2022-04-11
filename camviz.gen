@@ -100,8 +100,9 @@ component camviz {
     };
 
     attribute record(in prefix = : "Prefix of recording files") {
-        doc "Set recording prefix ratio, eg the absolute path of the target folder.";
+        doc "Set recording prefix ratio, eg the path of the target folder.";
         doc "Video file names are automatically set to the name of the cameras.";
+        doc "Env variables or ~ are not recognized.";
     };
 
     function stop_rec() {
