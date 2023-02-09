@@ -28,6 +28,7 @@
 // rather be added to the "doc" attributes of the genom objects defined in
 // camviz.gen.
 
+This is a pre-release version of the original work for GENOM-VISION project. The work is available at [redmine.laas.fr](https://redmine.laas.fr/projects/genom-vision/repository/camviz-genom3)
 = camviz component
 martin.jacquet@laas.fr
 1.0
